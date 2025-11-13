@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:mubclean/main.dart';
-import 'package:mubclean/src/features/home/home_page.dart';
-import 'package:mubclean/src/shared/utils/helpers.dart';
+// import 'package:mubclean/src/features/home/home_page.dart'; // Ya no lo usamos directo porque volvemos al Login
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -12,9 +11,9 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-  final _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>(); // Llave global para validar
   
-  // Controladores de texto
+  // Controladores
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -24,42 +23,51 @@ class _SignUpPageState extends State<SignUpPage> {
   bool _isLoading = false;
 
   Future<void> _signUp() async {
+    // 1. Ejecuta todas las validaciones (Regex) antes de hacer nada
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
     try {
-      // 1. Crear usuario en el sistema de Autenticación
+      // 2. Enviar datos a Supabase (incluyendo nombre y teléfono como metadata)
       final AuthResponse res = await supabase.auth.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
+        data: {
+          'full_name': _nameController.text.trim(),
+          'phone': _phoneController.text.trim(),
+        },
       );
 
       final User? user = res.user;
 
       if (user != null) {
-        // 2. Guardar los datos extra en la tabla 'profiles'
-        await supabase.from('profiles').upsert({
-          'id': user.id,
-          'full_name': _nameController.text.trim(),
-          'phone': _phoneController.text.trim(),
-          'email': _emailController.text.trim(),
-          'updated_at': DateTime.now().toIso8601String(),
-        });
-
         if (mounted) {
-          context.showSnackBar('¡Cuenta creada con éxito!');
-          // Vamos directo al Home
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const HomePage()),
-            (route) => false,
+          // Mensaje de éxito
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('¡Cuenta creada! Revisa tu correo para confirmar.'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 5),
+            ),
           );
+          
+          // Regresamos al Login para que el usuario espere su confirmación
+          Navigator.of(context).pop(); 
         }
       }
     } on AuthException catch (error) {
-      if (mounted) context.showSnackBar(error.message, isError: true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.message), backgroundColor: Colors.red),
+        );
+      }
     } catch (error) {
-      if (mounted) context.showSnackBar('Error inesperado: $error', isError: true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error inesperado: $error'), backgroundColor: Colors.red),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -71,21 +79,24 @@ class _SignUpPageState extends State<SignUpPage> {
       appBar: AppBar(
         title: const Text('Crear Cuenta', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.transparent,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Form(
-          key: _formKey,
+          key: _formKey, // Conectamos la llave del formulario
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildLabel('Nombre Completo'),
               TextFormField(
                 controller: _nameController,
+                textCapitalization: TextCapitalization.words, // Pone mayúscula inicial
                 decoration: _inputDecoration('Ej: Sofia Ramirez'),
-                validator: (v) => v!.isEmpty ? 'El nombre es obligatorio' : null,
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'El nombre es obligatorio';
+                  if (value.length < 3) return 'El nombre es muy corto';
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
 
@@ -94,16 +105,29 @@ class _SignUpPageState extends State<SignUpPage> {
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: _inputDecoration('Ej: sofia@email.com'),
-                validator: (v) => !v!.contains('@') ? 'Email inválido' : null,
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'El email es obligatorio';
+                  // Regex Profesional para Email
+                  final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                  if (!emailRegex.hasMatch(value)) return 'Ingresa un correo válido (ej: usuario@dominio.com)';
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
 
               _buildLabel('Número de Teléfono'),
               TextFormField(
                 controller: _phoneController,
-                keyboardType: TextInputType.phone,
+                keyboardType: TextInputType.number, // Teclado numérico
                 decoration: _inputDecoration('Ej: 9991234567'),
-                validator: (v) => v!.length < 10 ? 'Mínimo 10 dígitos' : null,
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'El teléfono es obligatorio';
+                  // Regex: Solo números
+                  final numberRegex = RegExp(r'^[0-9]+$');
+                  if (!numberRegex.hasMatch(value)) return 'Solo se permiten números (sin guiones ni espacios)';
+                  if (value.length != 10) return 'El teléfono debe tener 10 dígitos exactos';
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
 
@@ -112,8 +136,16 @@ class _SignUpPageState extends State<SignUpPage> {
                 controller: _passwordController,
                 obscureText: true,
                 decoration: _inputDecoration('********'),
-                validator: (v) => v!.length < 6 ? 'Mínimo 6 caracteres' : null,
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'La contraseña es obligatoria';
+                  if (value.length < 8) return 'Mínimo 8 caracteres';
+                  if (!value.contains(RegExp(r'[0-9]'))) return 'Debe contener al menos un número';
+                  if (!value.contains(RegExp(r'[A-Z]'))) return 'Debe contener al menos una mayúscula';
+                  return null;
+                },
               ),
+              const SizedBox(height: 4),
+              Text('Requisito: 8 caracteres, 1 número, 1 mayúscula.', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
               
               const SizedBox(height: 16),
 
@@ -122,7 +154,11 @@ class _SignUpPageState extends State<SignUpPage> {
                 controller: _confirmPasswordController,
                 obscureText: true,
                 decoration: _inputDecoration('********'),
-                validator: (v) => v != _passwordController.text ? 'No coinciden' : null,
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Confirma tu contraseña';
+                  if (value != _passwordController.text) return 'Las contraseñas no coinciden';
+                  return null;
+                },
               ),
 
               const SizedBox(height: 32),
@@ -138,8 +174,17 @@ class _SignUpPageState extends State<SignUpPage> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                   child: _isLoading 
-                    ? const CircularProgressIndicator(color: Colors.white)
+                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                     : const Text('Crear Cuenta', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+              ),
+              
+              const SizedBox(height: 20),
+              const Center(
+                child: Text(
+                  'Al crear una cuenta, aceptas nuestros Términos y Condiciones.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
                 ),
               ),
             ],

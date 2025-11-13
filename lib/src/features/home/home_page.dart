@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:mubclean/main.dart';
 import 'package:mubclean/src/features/auth/login_page.dart';
-// Importamos tus widgets
-import 'package:mubclean/src/features/home/widgets/home_widgets.dart';
-// Importamos la pestaña de perfil
+import 'package:mubclean/src/features/home/widgets/home_widgets.dart'; // Asegúrate que esté importado
 import 'package:mubclean/src/features/home/profile_tab.dart';
+
+// --- NUEVO IMPORT para la imagen del logo ---
+import 'package:flutter/services.dart' show rootBundle;
+import 'dart:ui' as ui; // Para el asset de imagen
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,31 +17,62 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0; // 0: Inicio, 1: Servicios, 2: Agenda, 3: Perfil
+  int _selectedIndex = 0; // 0: Inicio, 1: Historial, 2: Perfil
+  String _userName = 'Usuario'; 
+  ui.Image? _logoImage; // Variable para cargar el logo
 
-  // Función de logout (se usará si es necesario, aunque ya está en el perfil)
-  Future<void> _logout() async {
-    await Supabase.instance.client.auth.signOut();
-    if (mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const LoginPage()),
-        (route) => false,
-      );
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+    _loadLogoAsset(); // Cargar el logo al iniciar
+  }
+
+  // Cargar el nombre del usuario
+  Future<void> _loadUserName() async {
+    try {
+      final userId = supabase.auth.currentUser?.id;
+      if (userId != null) {
+        final data = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', userId)
+            .single();
+        
+        if (mounted) {
+          setState(() {
+            String fullName = data['full_name'] ?? 'Usuario';
+            _userName = fullName.split(' ')[0]; 
+          });
+        }
+      }
+    } catch (e) {
+      // Manejar error o dejar nombre por defecto
     }
+  }
+
+  // Cargar el logo de la empresa
+  Future<void> _loadLogoAsset() async {
+    final ByteData data = await rootBundle.load('assets/mubclean_logo.png'); // Ruta de tu logo
+    final List<int> bytes = data.buffer.asUint8List();
+    final ui.Codec codec = await ui.instantiateImageCodec(bytes);
+    final ui.FrameInfo frameInfo = await codec.getNextFrame();
+    setState(() {
+      _logoImage = frameInfo.image;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F7), 
+      backgroundColor: const Color(0xFFF5F5F7),
       
-      // --- APP BAR (CAMBIA SEGÚN LA PANTALLA) ---
       appBar: AppBar(
         backgroundColor: const Color(0xFFF5F5F7),
         elevation: 0,
         toolbarHeight: 80,
         automaticallyImplyLeading: false,
-        title: _selectedIndex == 0 // Solo mostramos el saludo en el Inicio (índice 0)
+        title: _selectedIndex == 0 
             ? Row(
                 children: [
                   Container(
@@ -51,102 +85,136 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   const SizedBox(width: 15),
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Bienvenido,', style: TextStyle(color: Colors.grey, fontSize: 14)),
-                      Text('Carlos', style: TextStyle(color: Colors.black, fontSize: 22, fontWeight: FontWeight.bold)),
+                      const Text('Hola,', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                      Text(_userName, style: const TextStyle(color: Colors.black, fontSize: 22, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ],
               )
-            : Text( // En otras pantallas mostramos el título de la sección
+            : Text(
                 _getAppBarTitle(),
                 style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
               ),
         actions: [
-          if (_selectedIndex == 0) // Solo mostramos logout rápido en Inicio
-            Container(
-              margin: const EdgeInsets.only(right: 15),
-              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-              child: IconButton(
-                onPressed: _logout,
-                icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
-                tooltip: "Cerrar Sesión",
-              ),
-            )
+          // Icono de Notificaciones
+          IconButton(
+            onPressed: (){},
+            icon: const Icon(Icons.notifications_none_rounded, color: Colors.black87, size: 28),
+          ),
+          const SizedBox(width: 10), // Espacio
         ],
       ),
 
-      // --- CUERPO (CAMBIA SEGÚN LA SELECCIÓN) ---
       body: _getSelectedView(),
 
-      // --- BARRA INFERIOR ---
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.white,
         selectedItemColor: const Color(0xFF0A7AFF),
         unselectedItemColor: Colors.grey,
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
-        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Inicio'),
-          BottomNavigationBarItem(icon: Icon(Icons.cleaning_services), label: 'Servicios'),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: 'Agenda'),
+          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Historial'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
       ),
     );
   }
 
-  // Lógica para decidir el título del AppBar
   String _getAppBarTitle() {
     switch (_selectedIndex) {
-      case 1: return 'Nuestros Servicios';
-      case 2: return 'Mi Agenda';
-      case 3: return 'Mi Perfil';
+      case 1: return 'Historial de Servicios';
+      case 2: return 'Mi Perfil';
       default: return '';
     }
   }
 
-  // Lógica para decidir qué pantalla mostrar
   Widget _getSelectedView() {
     switch (_selectedIndex) {
       case 0:
-        return const HomeContent(); // Hemos extraído el Home a su propio widget abajo
+        return HomeContent(logoImage: _logoImage); // Pasamos el logo al HomeContent
       case 1:
-        return const Center(child: Text("Pantalla de Servicios (Próximamente)"));
+        return const Center(child: Text("Aquí verás tus servicios anteriores"));
       case 2:
-        return const Center(child: Text("Pantalla de Agenda (Próximamente)"));
-      case 3:
-        return const ProfileTab(); // <--- ¡AQUÍ CONECTAMOS EL PERFIL!
+        return const ProfileTab();
       default:
-        return const HomeContent();
+        return HomeContent(logoImage: _logoImage);
     }
   }
 }
 
-// --- WIDGET CON EL CONTENIDO DEL HOME (Extraído para mantener orden) ---
+// --- CONTENIDO DEL HOME MEJORADO ---
 class HomeContent extends StatelessWidget {
-  const HomeContent({super.key});
+  final ui.Image? logoImage; // Recibimos el logo
+
+  const HomeContent({super.key, this.logoImage});
 
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(20),
-      children: const [
-        SolicitarServicioButton(),
-        SizedBox(height: 30),
-        ProximaCitaCard(),
-        SizedBox(height: 25),
-        CotizacionCard(),
-        SizedBox(height: 35),
-        Text("Accesos Rápidos", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        SizedBox(height: 15),
-        QuickAccessItem(icon: Icons.assignment_outlined, title: "Mis Solicitudes"),
-        QuickAccessItem(icon: Icons.history_rounded, title: "Historial de Servicios"),
-        QuickAccessItem(icon: Icons.support_agent_rounded, title: "Soporte Técnico"),
-        SizedBox(height: 50),
+      children: [
+        
+        // 1. LOGO DE LA EMPRESA (Si está cargado)
+        if (logoImage != null)
+          Align(
+            alignment: Alignment.center,
+            child: SizedBox(
+              width: 120, // Ajusta el tamaño del logo
+              height: 120,
+              child: RawImage(image: logoImage, fit: BoxFit.contain),
+            ),
+          ),
+        const SizedBox(height: 10),
+        
+        // 2. IMAGEN VISTOSA CENTRAL
+        Image.asset(
+          'assets/cleaning_image.png', // RUTA DE TU IMAGEN VISTOSA
+          height: 150,
+        ),
+        const SizedBox(height: 15),
+
+        const Center(
+          child: Column(
+            children: [
+              Text(
+                "¡Estamos listos para limpiar!",
+                style: TextStyle(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 5),
+              Text(
+                "Cotiza tu servicio de limpieza en segundos.",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey, fontSize: 14),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 40), // Espacio
+
+        // 3. SECCIÓN AYUDA Y SOPORTE
+        const Text("Ayuda y Soporte", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 15),
+        
+        const QuickAccessItem(icon: Icons.support_agent_rounded, title: "Contactar Soporte"),
+        const QuickAccessItem(icon: Icons.info_outline, title: "Preguntas Frecuentes"),
+        
+        const SizedBox(height: 40), // Espacio
+
+        // 4. BOTÓN "COTIZAR UN SERVICIO" (Ahora debajo de Ayuda y Soporte)
+        CotizarServicioButton(
+          onPressed: () {
+            // AQUÍ NAVEGARÁ A LA PANTALLA DE SELECCIÓN DE SERVICIOS
+            print('Navegando a selección de servicios...'); 
+          },
+        ),
+        
+        const SizedBox(height: 20),
       ],
     );
   }
