@@ -18,6 +18,7 @@ class CotizarServicioButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF0A7AFF),
           foregroundColor: Colors.white,
+          
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),

@@ -4,6 +4,7 @@ import 'package:mubclean/main.dart';
 import 'package:mubclean/src/features/auth/login_page.dart';
 import 'package:mubclean/src/features/home/widgets/home_widgets.dart';
 import 'package:mubclean/src/features/home/profile_tab.dart';
+import 'package:mubclean/src/features/history/history_page.dart';
 // ELIMINADO: import 'package:mubclean/src/features/quote/category_selection_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -51,7 +52,9 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F7),
       
-      appBar: AppBar(
+      // Solo mostramos el AppBar del Home si estamos en la pestaña 0 (Inicio)
+appBar: _selectedIndex != 0 ? null : AppBar(
+    // ... todo el código que ya tenías del AppBar ...
         backgroundColor: const Color(0xFFF5F5F7),
         elevation: 0,
         toolbarHeight: 80,
@@ -121,7 +124,8 @@ class _HomePageState extends State<HomePage> {
       case 0:
         return const HomeContent(); 
       case 1:
-        return const Center(child: Text("Aquí verás tus servicios anteriores"));
+        // AQUÍ CONECTAMOS LA PANTALLA DE HISTORIAL
+        return const HistoryPage();
       case 2:
         return const ProfileTab();
       default:
