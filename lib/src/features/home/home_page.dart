@@ -2,12 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:mubclean/main.dart';
 import 'package:mubclean/src/features/auth/login_page.dart';
-import 'package:mubclean/src/features/home/widgets/home_widgets.dart'; // Asegúrate que esté importado
+import 'package:mubclean/src/features/home/widgets/home_widgets.dart';
 import 'package:mubclean/src/features/home/profile_tab.dart';
-
-// --- NUEVO IMPORT para la imagen del logo ---
-import 'package:flutter/services.dart' show rootBundle;
-import 'dart:ui' as ui; // Para el asset de imagen
+// ELIMINADO: import 'package:mubclean/src/features/quote/category_selection_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,17 +15,15 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0; // 0: Inicio, 1: Historial, 2: Perfil
-  String _userName = 'Usuario'; 
-  ui.Image? _logoImage; // Variable para cargar el logo
+  String _userName = 'Usuario';
 
   @override
   void initState() {
     super.initState();
     _loadUserName();
-    _loadLogoAsset(); // Cargar el logo al iniciar
   }
 
-  // Cargar el nombre del usuario
+  // Cargar el nombre del usuario desde Supabase
   Future<void> _loadUserName() async {
     try {
       final userId = supabase.auth.currentUser?.id;
@@ -47,19 +42,8 @@ class _HomePageState extends State<HomePage> {
         }
       }
     } catch (e) {
-      // Manejar error o dejar nombre por defecto
+      // Si falla, se queda como 'Usuario'
     }
-  }
-
-  // Cargar el logo de la empresa
-  Future<void> _loadLogoAsset() async {
-    final ByteData data = await rootBundle.load('assets/mubclean_logo.png'); // Ruta de tu logo
-    final List<int> bytes = data.buffer.asUint8List();
-    final ui.Codec codec = await ui.instantiateImageCodec(bytes);
-    final ui.FrameInfo frameInfo = await codec.getNextFrame();
-    setState(() {
-      _logoImage = frameInfo.image;
-    });
   }
 
   @override
@@ -99,12 +83,11 @@ class _HomePageState extends State<HomePage> {
                 style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
               ),
         actions: [
-          // Icono de Notificaciones
           IconButton(
             onPressed: (){},
             icon: const Icon(Icons.notifications_none_rounded, color: Colors.black87, size: 28),
           ),
-          const SizedBox(width: 10), // Espacio
+          const SizedBox(width: 10),
         ],
       ),
 
@@ -136,22 +119,20 @@ class _HomePageState extends State<HomePage> {
   Widget _getSelectedView() {
     switch (_selectedIndex) {
       case 0:
-        return HomeContent(logoImage: _logoImage); // Pasamos el logo al HomeContent
+        return const HomeContent(); 
       case 1:
         return const Center(child: Text("Aquí verás tus servicios anteriores"));
       case 2:
         return const ProfileTab();
       default:
-        return HomeContent(logoImage: _logoImage);
+        return const HomeContent();
     }
   }
 }
 
-// --- CONTENIDO DEL HOME MEJORADO ---
+// --- CONTENIDO DEL HOME ---
 class HomeContent extends StatelessWidget {
-  final ui.Image? logoImage; // Recibimos el logo
-
-  const HomeContent({super.key, this.logoImage});
+  const HomeContent({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -159,23 +140,25 @@ class HomeContent extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       children: [
         
-        // 1. LOGO DE LA EMPRESA (Si está cargado)
-        if (logoImage != null)
-          Align(
-            alignment: Alignment.center,
-            child: SizedBox(
-              width: 120, // Ajusta el tamaño del logo
-              height: 120,
-              child: RawImage(image: logoImage, fit: BoxFit.contain),
-            ),
+        // 1. LOGO DE LA EMPRESA
+        Align(
+          alignment: Alignment.center,
+          child: SizedBox(
+            width: 120,
+            height: 120,
+            child: Image.asset('assets/image/Logo.png', fit: BoxFit.contain),
           ),
+        ),
+        
         const SizedBox(height: 10),
         
         // 2. IMAGEN VISTOSA CENTRAL
-        Image.asset(
-          'assets/cleaning_image.png', // RUTA DE TU IMAGEN VISTOSA
+        Image.asset('assets/image/Mueble.png', 
           height: 150,
+          errorBuilder: (context, error, stackTrace) => 
+            const Icon(Icons.image, size: 100, color: Colors.grey),
         ),
+        
         const SizedBox(height: 15),
 
         const Center(
@@ -195,7 +178,7 @@ class HomeContent extends StatelessWidget {
           ),
         ),
 
-        const SizedBox(height: 40), // Espacio
+        const SizedBox(height: 40),
 
         // 3. SECCIÓN AYUDA Y SOPORTE
         const Text("Ayuda y Soporte", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -204,13 +187,15 @@ class HomeContent extends StatelessWidget {
         const QuickAccessItem(icon: Icons.support_agent_rounded, title: "Contactar Soporte"),
         const QuickAccessItem(icon: Icons.info_outline, title: "Preguntas Frecuentes"),
         
-        const SizedBox(height: 40), // Espacio
+        const SizedBox(height: 40),
 
-        // 4. BOTÓN "COTIZAR UN SERVICIO" (Ahora debajo de Ayuda y Soporte)
+        // 4. BOTÓN "COTIZAR UN SERVICIO"
         CotizarServicioButton(
           onPressed: () {
-            // AQUÍ NAVEGARÁ A LA PANTALLA DE SELECCIÓN DE SERVICIOS
-            print('Navegando a selección de servicios...'); 
+            // CORRECCIÓN: Solo mostramos un mensaje, no navegamos a ningún lado aún.
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Próximamente: Módulo de Cotización"))
+            );
           },
         ),
         

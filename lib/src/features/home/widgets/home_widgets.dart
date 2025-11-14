@@ -1,145 +1,39 @@
 import 'package:flutter/material.dart';
 
-// 1. BOTÓN GRANDE AZUL
-class SolicitarServicioButton extends StatelessWidget {
-  const SolicitarServicioButton({super.key});
+// Este widget ya no va a navegar, solo es el botón visual.
+// La navegación la haremos directamente en home_page.dart para tener más control
+class CotizarServicioButton extends StatelessWidget {
+  final VoidCallback onPressed; // Agregamos un callback para cuando se presione
+
+  const CotizarServicioButton({super.key, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
+      // Tamaño del botón ligeramente más pequeño
+      height: 48, 
       width: double.infinity,
-      height: 55,
       child: ElevatedButton.icon(
-        onPressed: () {},
-        icon: const Icon(Icons.add_circle_outline, color: Colors.white, size: 28),
-        label: const Text(
-          'Solicitar un Servicio',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
+        onPressed: onPressed, // Usamos el callback
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF0A7AFF), // Azul Mublean
+          backgroundColor: const Color(0xFF0A7AFF),
           foregroundColor: Colors.white,
-          elevation: 4,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          elevation: 0,
+        ),
+        icon: const Icon(Icons.add_circle_outline, size: 24),
+        label: const Text(
+          'Cotizar un Servicio', // Texto cambiado
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
     );
   }
 }
 
-// 2. TARJETA DE PRÓXIMA CITA
-class ProximaCitaCard extends StatelessWidget {
-  const ProximaCitaCard({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Zona de la imagen (Gris segura)
-          Container(
-            height: 140,
-            decoration: const BoxDecoration(
-              color: Color(0xFFCFD8DC), // Gris azulado
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            child: const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.weekend, size: 50, color: Colors.white),
-                  SizedBox(height: 5),
-                  Text("Limpieza de Sala", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))
-                ],
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('PRÓXIMA CITA', style: TextStyle(color: Color(0xFF0A7AFF), fontWeight: FontWeight.bold, letterSpacing: 1)),
-                const SizedBox(height: 5),
-                const Text('Limpieza de Sofá', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87)),
-                const SizedBox(height: 8),
-                Text('Martes, 28 de Octubre\n10:00 AM', style: TextStyle(color: Colors.grey[700], fontSize: 15, height: 1.4)),
-                const SizedBox(height: 15),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0A7AFF), 
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
-                    ),
-                    child: const Text('Ver Detalles'),
-                  ),
-                )
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// 3. TARJETA DE COTIZACIÓN
-class CotizacionCard extends StatelessWidget {
-  const CotizacionCard({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFFFA000).withOpacity(0.3)), // Borde naranja sutil
-        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.warning_amber_rounded, color: Color(0xFFFFA000)),
-              SizedBox(width: 8),
-              Text('COTIZACIÓN PENDIENTE', style: TextStyle(color: Color(0xFFFFA000), fontWeight: FontWeight.bold)),
-            ],
-          ),
-          const SizedBox(height: 10),
-          const Text('Lavado de Alfombras', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
-          const SizedBox(height: 5),
-          const Text('#MC-12045', style: TextStyle(color: Colors.grey)),
-          const SizedBox(height: 15),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFFA000),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
-              ),
-              child: const Text('Revisar y Aprobar'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// 4. BOTÓN DE ACCESO RÁPIDO (GENÉRICO)
+// Widget para las opciones de Acceso Rápido/Ayuda y Soporte
 class QuickAccessItem extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -149,32 +43,28 @@ class QuickAccessItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))],
+        borderRadius: BorderRadius.circular(10),
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: const Color(0xFF0A7AFF), size: 26),
+      child: ListTile(
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0A7AFF).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black87),
-            ),
-          ),
-          const Icon(Icons.arrow_forward_ios_rounded, size: 18, color: Colors.grey),
-        ],
+          child: Icon(icon, color: const Color(0xFF0A7AFF)),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.w500),
+        ),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey),
+        onTap: () {
+          // Implementar navegación o acción aquí
+        },
       ),
     );
   }
