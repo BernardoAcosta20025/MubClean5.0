@@ -35,14 +35,10 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   supabase_flutter: ^2.10.3
-<<<<<<< HEAD
   table_calendar: ^3.2.0
   intl: ^0.20.2
   image_picker: ^1.1.2
   flutter_dotenv: ^6.0.0
-=======
-  image_picker: ^1.2.1
->>>>>>> 040df4a6cc0ef4c309c9067d406cd5a39b7e5df1
 
 dev_dependencies:
   flutter_test:

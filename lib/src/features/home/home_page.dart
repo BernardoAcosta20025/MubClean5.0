@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
+import 'dart:typed_data';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:mubclean/main.dart'; // Cliente de Supabase global
 import 'package:mubclean/src/features/home/widgets/home_widgets.dart';
-import 'package:mubclean/src/features/home/profile_tab.dart'; 
+import 'package:mubclean/src/features/home/profile_tab.dart';
 import 'package:mubclean/src/features/history/history_page.dart'; // NECESARIO
+// ✨ 1. IMPORTAMOS EL NUEVO FLUJO (Paso 1)
+import 'package:mubclean/src/features/quotation/screens/service_selection_screen.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,7 +17,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0; 
+  int _selectedIndex = 0;
   String _userName = 'Usuario';
   ui.Image? _logoImage;
 
@@ -21,6 +25,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadUserName();
+    _loadLogoAsset(); // Cargar logo al iniciar
   }
 
   Future<void> _loadUserName() async {
@@ -45,12 +50,27 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  
+  // Cargar el logo de la empresa como asset de imagen
+  Future<void> _loadLogoAsset() async {
+    try {
+      final ByteData data = await rootBundle.load('assets/mubclean_logo.png');
+      final Uint8List bytes = data.buffer.asUint8List();
+      final ui.Codec codec = await ui.instantiateImageCodec(bytes);
+      final ui.FrameInfo frameInfo = await codec.getNextFrame();
+      if (mounted) {
+        setState(() {
+          _logoImage = frameInfo.image;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error al cargar el logo: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     const Color mubBlue = Color(0xFF0A7AFF);
-    
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F7),
       
@@ -117,7 +137,7 @@ class _HomePageState extends State<HomePage> {
   Widget _getSelectedView() {
     switch (_selectedIndex) {
       case 0:
-        return const HomeContent();
+        return HomeContent(logoImage: _logoImage);
       case 1:
         // LLAMADA FINAL Y CORREGIDA: Sin 'const'
         return const HistoryPage(); 
@@ -145,7 +165,9 @@ class HomeContent extends StatelessWidget {
           child: SizedBox(
             width: 120,
             height: 120,
-            child: Image.asset('assets/image/Logo.png', fit: BoxFit.contain),
+            child: logoImage != null 
+              ? RawImage(image: logoImage, fit: BoxFit.contain)
+              : Image.asset('assets/image/Logo.png', fit: BoxFit.contain),
           ),
         ),
         const SizedBox(height: 10),
@@ -178,13 +200,34 @@ class HomeContent extends StatelessWidget {
         ),
         const SizedBox(height: 25),
         
-        // Botón Cotizar
-        CotizarServicioButton(
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Próximamente: Módulo de Cotización"))
-            );
-          },
+        // ✨ 2. BOTÓN COTIZAR CONECTADO
+        // Reemplazamos CotizarServicioButton por un ElevatedButton directo con navegación
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: () {
+              // Navegamos al paso 1 del nuevo flujo
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ServiceSelectionScreen(),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0A7AFF),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text(
+              'Cotizar un Servicio',
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white),
+            ),
+          ),
         ),
 
         const SizedBox(height: 40),
