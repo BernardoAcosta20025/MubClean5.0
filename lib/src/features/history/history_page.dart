@@ -5,25 +5,20 @@ class HistoryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Usamos DefaultTabController para manejar las pestañas fácilmente
     return DefaultTabController(
       length: 2, // Dos pestañas: Activos y Anteriores
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F5F7),
         appBar: AppBar(
-          title: const Text(
-            "Mis Servicios",
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-          ),
+          title: const Text("Mis Servicios", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
           centerTitle: true,
           backgroundColor: Colors.white,
           elevation: 0,
-          automaticallyImplyLeading:
-              false, // Sin flecha atrás porque es navegación principal
+          automaticallyImplyLeading: false,
           bottom: const TabBar(
-            labelColor: Color(0xFF0A7AFF), // Color del texto activo
+            labelColor: Color(0xFF0A7AFF),
             unselectedLabelColor: Colors.grey,
-            indicatorColor: Color(0xFF0A7AFF), // Color de la rayita de abajo
+            indicatorColor: Color(0xFF0A7AFF),
             indicatorSize: TabBarIndicatorSize.label,
             tabs: [
               Tab(text: "Activos"),
@@ -33,10 +28,7 @@ class HistoryPage extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
-            // Vista 1: Servicios Activos
             _buildActiveServices(),
-
-            // Vista 2: Servicios Anteriores
             _buildPastServices(),
           ],
         ),
@@ -44,25 +36,10 @@ class HistoryPage extends StatelessWidget {
     );
   }
 
-  // --- VISTA DE SERVICIOS ACTIVOS ---
   Widget _buildActiveServices() {
-    // Datos de prueba (Mock Data) para visualizar el diseño
     final List<Map<String, dynamic>> activeServices = [
-      {
-        'service':
-            'Lavado de Sala en L y dos sillones individuales adicionales',
-        'status': 'Cotización Pendiente de Aprobación por el Cliente',
-        'date': 'Solicitado el 12 Nov',
-        'color': const Color(0xFFFFA000), // Naranja
-        'icon': Icons.access_time_filled,
-      },
-      {
-        'service': 'Limpieza de Colchón King',
-        'status': 'Agendado',
-        'date': 'Viernes, 15 Nov - 10:00 AM',
-        'color': const Color(0xFF0A7AFF), // Azul
-        'icon': Icons.calendar_today,
-      },
+      {'service': 'Lavado de Sala en L', 'status': 'Cotización Pendiente', 'date': 'Solicitado hoy'},
+      {'service': 'Limpieza de Colchón King', 'status': 'Agendado', 'date': 'Viernes, 15 Nov - 10:00 AM'},
     ];
 
     if (activeServices.isEmpty) {
@@ -78,17 +55,9 @@ class HistoryPage extends StatelessWidget {
     );
   }
 
-  // --- VISTA DE SERVICIOS ANTERIORES ---
   Widget _buildPastServices() {
-    // Simulamos una lista con un servicio finalizado
     final List<Map<String, dynamic>> pastServices = [
-      {
-        'service': 'Lavado de Alfombra',
-        'status': 'Finalizado',
-        'date': '20 Octubre 2023',
-        'color': Colors.green,
-        'icon': Icons.check_circle,
-      },
+      {'service': 'Lavado de Alfombra', 'status': 'Finalizado', 'date': '20 Octubre 2023', 'cost': '\$450.00'},
     ];
 
     return ListView.builder(
@@ -100,7 +69,6 @@ class HistoryPage extends StatelessWidget {
     );
   }
 
-  // Widget para mostrar cuando no hay nada
   Widget _buildEmptyState(String message) {
     return Center(
       child: Column(
@@ -115,7 +83,7 @@ class HistoryPage extends StatelessWidget {
   }
 }
 
-// --- WIDGET DE TARJETA DE SERVICIO ---
+// WIDGET DE TARJETA DE SERVICIO
 class _ServiceCard extends StatelessWidget {
   final Map<String, dynamic> data;
 
@@ -123,86 +91,67 @@ class _ServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isFinished = data['status'] == 'Finalizado';
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Cabecera con estado
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                // <-- FIX: Permite que el estado se encoja si es necesario
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Color.fromARGB(
-                      (255 * 0.1).round(),
-                      // ignore: deprecated_member_use
-                      (data['color'] as Color).red,
-                      // ignore: deprecated_member_use
-                      (data['color'] as Color).green,
-                      // ignore: deprecated_member_use
-                      (data['color'] as Color).blue,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize:
-                        MainAxisSize.min, // Para que no ocupe todo el ancho
-                    children: [
-                      Icon(data['icon'], size: 14, color: data['color']),
-                      const SizedBox(width: 5),
-                      Flexible(
-                        // <-- FIX: Permite que el texto se ajuste
-                        child: Text(
-                          data['status'],
-                          style: TextStyle(
-                            color: data['color'],
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10), // Espacio para que no se pegue
-              const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+              Text(data['service'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              _buildStatusChip(data['status']),
             ],
           ),
-          const SizedBox(height: 12),
-          // Título del servicio
-          Text(
-            data['service'],
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            maxLines: 2, // Permite hasta 2 líneas
-            overflow: TextOverflow.ellipsis, // Corta el texto si es muy largo
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.calendar_today, size: 14, color: Colors.grey),
+              const SizedBox(width: 5),
+              Text(data['date'], style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+            ],
           ),
-          const SizedBox(height: 5),
-          // Fecha
-          Text(
-            data['date'],
-            style: TextStyle(color: Colors.grey[600], fontSize: 14),
-          ),
+          if (isFinished && data.containsKey('cost')) ...[
+            const Divider(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Total Pagado", style: TextStyle(color: Colors.grey)),
+                Text(data['cost'], style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+              ],
+            ),
+          ]
         ],
+      ),
+    );
+  }
+
+  Widget _buildStatusChip(String status) {
+    Color color;
+    switch (status) {
+      case 'Agendado': color = Colors.blue; break;
+      case 'Finalizado': color = Colors.green; break;
+      case 'Cotización Pendiente': color = Colors.orange; break;
+      default: color = Colors.grey;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        status,
+        style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold),
       ),
     );
   }
