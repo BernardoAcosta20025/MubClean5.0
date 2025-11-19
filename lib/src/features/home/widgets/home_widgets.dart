@@ -11,7 +11,7 @@ class CotizarServicioButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       // Tamaño del botón ligeramente más pequeño
-      height: 48, 
+      height: 48,
       width: double.infinity,
       child: ElevatedButton.icon(
         onPressed: onPressed, // Usamos el callback
@@ -58,11 +58,12 @@ class QuickAccessItem extends StatelessWidget {
           ),
           child: Icon(icon, color: const Color(0xFF0A7AFF)),
         ),
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.w500),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
+        trailing: const Icon(
+          Icons.arrow_forward_ios,
+          size: 18,
+          color: Colors.grey,
         ),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey),
         onTap: () {
           // Implementar navegación o acción aquí
         },

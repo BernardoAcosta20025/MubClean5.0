@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:mubclean/main.dart';
-// import 'package:mubclean/src/features/home/home_page.dart'; // Ya no lo usamos directo porque volvemos al Login
+import 'package:mubclean/src/shared/utils/helpers.dart'; // Importamos el helper
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -11,9 +11,8 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-  final _formKey = GlobalKey<FormState>(); // Llave global para validar
+  final _formKey = GlobalKey<FormState>();
 
-  // Controladores
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -23,13 +22,11 @@ class _SignUpPageState extends State<SignUpPage> {
   bool _isLoading = false;
 
   Future<void> _signUp() async {
-    // 1. Ejecuta todas las validaciones (Regex) antes de hacer nada
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
     try {
-      // 2. Enviar datos a Supabase (incluyendo nombre y teléfono como metadata)
       final AuthResponse res = await supabase.auth.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
@@ -41,35 +38,22 @@ class _SignUpPageState extends State<SignUpPage> {
 
       final User? user = res.user;
 
-      if (user != null) {
-        if (mounted) {
-          // Mensaje de éxito
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('¡Cuenta creada! Revisa tu correo para confirmar.'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 5),
-            ),
-          );
-
-          // Regresamos al Login para que el usuario espere su confirmación
-          Navigator.of(context).pop();
-        }
+      if (user != null && mounted) {
+        // Usamos el helper para consistencia
+        context.showSnackBar(
+          '¡Cuenta creada! Revisa tu correo para confirmar.',
+        );
+        Navigator.of(context).pop();
       }
     } on AuthException catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.message), backgroundColor: Colors.red),
-        );
+        // Usamos el helper para errores
+        context.showSnackBar(error.message, isError: true);
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error inesperado: $error'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        // Usamos el helper para errores
+        context.showSnackBar('Error inesperado: $error', isError: true);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -89,15 +73,14 @@ class _SignUpPageState extends State<SignUpPage> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Form(
-          key: _formKey, // Conectamos la llave del formulario
+          key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildLabel('Nombre Completo'),
               TextFormField(
                 controller: _nameController,
-                textCapitalization:
-                    TextCapitalization.words, // Pone mayúscula inicial
+                textCapitalization: TextCapitalization.words,
                 decoration: _inputDecoration('Ej: Sofia Ramirez'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -110,7 +93,6 @@ class _SignUpPageState extends State<SignUpPage> {
                 },
               ),
               const SizedBox(height: 16),
-
               _buildLabel('Email'),
               TextFormField(
                 controller: _emailController,
@@ -120,7 +102,6 @@ class _SignUpPageState extends State<SignUpPage> {
                   if (value == null || value.isEmpty) {
                     return 'El email es obligatorio';
                   }
-                  // Regex Profesional para Email
                   final emailRegex = RegExp(
                     r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
                   );
@@ -131,18 +112,16 @@ class _SignUpPageState extends State<SignUpPage> {
                 },
               ),
               const SizedBox(height: 16),
-
               _buildLabel('Número de Teléfono'),
               TextFormField(
                 controller: _phoneController,
-                keyboardType: TextInputType.number, // Teclado numérico
+                keyboardType: TextInputType.number,
                 decoration: _inputDecoration('Ej: 9991234567'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'El teléfono es obligatorio';
                   }
-                  // Regex: Solo números
-                  final numberRegex = RegExp(r'^[0-9]+$');
+                  final numberRegex = RegExp(r'^\d+$'); // Solo dígitos
                   if (!numberRegex.hasMatch(value)) {
                     return 'Solo se permiten números (sin guiones ni espacios)';
                   }
@@ -153,7 +132,6 @@ class _SignUpPageState extends State<SignUpPage> {
                 },
               ),
               const SizedBox(height: 16),
-
               _buildLabel('Contraseña'),
               TextFormField(
                 controller: _passwordController,
@@ -180,9 +158,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 'Requisito: 8 caracteres, 1 número, 1 mayúscula.',
                 style: TextStyle(color: Colors.grey[600], fontSize: 12),
               ),
-
               const SizedBox(height: 16),
-
               _buildLabel('Confirmar Contraseña'),
               TextFormField(
                 controller: _confirmPasswordController,
@@ -198,9 +174,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   return null;
                 },
               ),
-
               const SizedBox(height: 32),
-
               SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -231,7 +205,6 @@ class _SignUpPageState extends State<SignUpPage> {
                         ),
                 ),
               ),
-
               const SizedBox(height: 20),
               const Center(
                 child: Text(

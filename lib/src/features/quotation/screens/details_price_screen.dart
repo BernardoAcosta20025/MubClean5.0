@@ -14,12 +14,14 @@ class DetailsPriceScreen extends StatefulWidget {
 }
 
 class _DetailsPriceScreenState extends State<DetailsPriceScreen> {
-  // --- Precios (Lógica de negocio) ---
-  static const Map<FurnitureType, double> _priceList = {
-    FurnitureType.sofa: 550.0,
-    FurnitureType.silla: 90.0,
-    FurnitureType.alfombra: 300.0,
-    FurnitureType.otros: 150.0,
+  // --- Lógica de negocio de Precios ---
+  static const Map<String, double> _basePrices = {
+    'Sillón': 500.0,
+    'Cama': 600.0,
+    'Silla': 100.0,
+    'Mesa': 200.0,
+    'Escritorio': 250.0,
+    'Alfombra': 350.0,
   };
   static const double _minimumCharge = 400.0;
   late double _totalPrice;
@@ -46,34 +48,36 @@ class _DetailsPriceScreenState extends State<DetailsPriceScreen> {
   }
 
   void _calculateTotalPrice() {
-    double calculatedPrice = 0.0;
-    for (var type in widget.quotation.selectedFurniture) {
-      calculatedPrice += _priceList[type] ?? 0.0;
+    double calculatedPrice =
+        _basePrices[widget.quotation.furnitureType] ?? 150.0;
+    calculatedPrice *= widget.quotation.furnitureQuantity;
+
+    // Multiplicador por nivel de suciedad
+    switch (widget.quotation.dirtLevel) {
+      case 'Medio':
+        calculatedPrice *= 1.25;
+        break;
+      case 'Alto':
+        calculatedPrice *= 1.5;
+        break;
     }
-    if (calculatedPrice < _minimumCharge && calculatedPrice > 0) {
+
+    // Costos adicionales por preferencias
+    if (widget.quotation.petFriendly) calculatedPrice += 50.0;
+    if (widget.quotation.ecoFriendly) calculatedPrice += 50.0;
+
+    // Aplicar cargo mínimo si es necesario
+    if (calculatedPrice < _minimumCharge) {
       _totalPrice = _minimumCharge;
     } else {
       _totalPrice = calculatedPrice;
     }
   }
 
-  // --- Callbacks de Selección ---
-  void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
-    setState(() {
-      _selectedDay = selectedDay;
-      _focusedDay = focusedDay;
-      _selectedTimeSlot = null;
-    });
-  }
-
-  void _onTimeSelected(String timeSlot) {
-    setState(() {
-      _selectedTimeSlot = timeSlot;
-    });
-  }
-
-  // Navegación
   void _goToSummary() {
+    // Aquí se deberían pasar los datos finales a la pantalla de pago/resumen
+    // La pantalla `SummaryPaymentScreen` también necesitaría ser actualizada
+    // para aceptar el nuevo modelo de Quotation.
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -111,42 +115,37 @@ class _DetailsPriceScreenState extends State<DetailsPriceScreen> {
             child: ListView(
               padding: const EdgeInsets.all(20.0),
               children: [
+                _buildQuotationSummary(), // NUEVO: Resumen de la cotización
+                const SizedBox(height: 30),
+
                 // --- SECCIÓN DE PRECIO ---
                 Text(
-                  'Resumen de Precios',
+                  'Precio Estimado',
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 16),
-
-                // ✨ --- INICIO DE LA CORRECCIÓN (Layout Vertical) ---
                 Container(
                   padding: const EdgeInsets.all(20),
-                  width: double.infinity, // Ocupa todo el ancho
+                  width: double.infinity,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.grey.shade200),
                   ),
                   child: Column(
-                    // <-- 1. CAMBIO DE Row A Column
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start, // Alinea a la izquierda
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // 1. Título
                       const Text(
-                        'Precio Base (Estimado)',
+                        'Total a pagar',
                         style: TextStyle(fontSize: 16, color: Colors.black54),
                       ),
-                      const SizedBox(height: 8), // Espacio vertical
-                      // 2. Precio (Debajo)
-                      // ✨ 2. AQUÍ SE ARREGLA EL ERROR DEL TEXTO AZUL
+                      const SizedBox(height: 8),
                       Text(
-                        // Se quita el '\' para que la variable funcione
                         '\$${_totalPrice.toStringAsFixed(2)}',
                         style: const TextStyle(
-                          fontSize: 28, // Más grande para destacar
+                          fontSize: 28,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF0A7AFF),
                         ),
@@ -154,15 +153,12 @@ class _DetailsPriceScreenState extends State<DetailsPriceScreen> {
                     ],
                   ),
                 ),
-                // ✨ --- FIN DE LA CORRECCIÓN ---
-
-                // --- TEXTO DE AYUDA (Centrado) ---
                 const SizedBox(height: 16),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: Text(
-                    'El precio final puede variar ligeramente según la evaluación de las fotos que subas.',
-                    textAlign: TextAlign.center, // Centrado
+                    'El precio final puede variar ligeramente según la evaluación de las fotos que subas (paso no implementado).',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontSize: 13,
@@ -172,7 +168,7 @@ class _DetailsPriceScreenState extends State<DetailsPriceScreen> {
                 ),
                 const SizedBox(height: 30),
 
-                // --- SECCIÓN DE AGENDA (CALENDARIO) ---
+                // --- SECCIÓN DE AGENDA ---
                 Text(
                   '1. Selecciona el Día',
                   style: theme.textTheme.headlineSmall?.copyWith(
@@ -192,7 +188,11 @@ class _DetailsPriceScreenState extends State<DetailsPriceScreen> {
                     lastDay: DateTime.now().add(const Duration(days: 90)),
                     focusedDay: _focusedDay,
                     selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                    onDaySelected: _onDaySelected,
+                    onDaySelected: (day, focused) => setState(() {
+                      _selectedDay = day;
+                      _focusedDay = focused;
+                      _selectedTimeSlot = null;
+                    }),
                     calendarStyle: CalendarStyle(
                       todayDecoration: BoxDecoration(
                         color: Colors.blue[100],
@@ -202,10 +202,6 @@ class _DetailsPriceScreenState extends State<DetailsPriceScreen> {
                         color: const Color(0xFF0A7AFF),
                         shape: BoxShape.circle,
                       ),
-                      selectedTextStyle: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
                     ),
                     headerStyle: const HeaderStyle(
                       titleCentered: true,
@@ -214,8 +210,6 @@ class _DetailsPriceScreenState extends State<DetailsPriceScreen> {
                   ),
                 ),
                 const SizedBox(height: 30),
-
-                // --- SECCIÓN: BLOQUES DE HORA ---
                 Text(
                   '2. Selecciona la Hora',
                   style: theme.textTheme.headlineSmall?.copyWith(
@@ -224,15 +218,11 @@ class _DetailsPriceScreenState extends State<DetailsPriceScreen> {
                 ),
                 const SizedBox(height: 16),
                 _buildTimeSlots(),
-
-                // --- BLOQUE DE RESUMEN EN TIEMPO REAL ---
                 const SizedBox(height: 30),
                 _buildSummaryBlock(),
               ],
             ),
           ),
-
-          // --- BOTÓN DE NAVEGACIÓN ---
           Container(
             padding: const EdgeInsets.all(20.0),
             decoration: const BoxDecoration(
@@ -254,7 +244,78 @@ class _DetailsPriceScreenState extends State<DetailsPriceScreen> {
     );
   }
 
-  // --- WIDGET HELPER PARA LOS BLOQUES DE HORA ---
+  Widget _buildQuotationSummary() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Resumen de tu Servicio',
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const Divider(height: 20, thickness: 1),
+          _buildSummaryRow('Servicio:', widget.quotation.selectedService),
+          _buildSummaryRow(
+            'Mueble:',
+            '${widget.quotation.furnitureType} (x${widget.quotation.furnitureQuantity})',
+          ),
+          _buildSummaryRow('Nivel de Suciedad:', widget.quotation.dirtLevel),
+          if (widget.quotation.stainTypes.isNotEmpty)
+            _buildSummaryRow(
+              'Tipos de Mancha:',
+              widget.quotation.stainTypes.join(', '),
+            ),
+          if (widget.quotation.petFriendly)
+            _buildSummaryRow('Preferencia:', 'Productos Pet-Friendly'),
+          if (widget.quotation.ecoFriendly)
+            _buildSummaryRow('Preferencia:', 'Productos Ecológicos'),
+          if (widget.quotation.notes.isNotEmpty)
+            _buildSummaryRow('Notas:', widget.quotation.notes),
+          _buildSummaryRow(
+            'Dirección:',
+            widget.quotation.address.isEmpty
+                ? 'No especificada'
+                : widget.quotation.address,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryRow(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              color: Colors.grey[700],
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: TextStyle(color: Colors.grey[900], fontSize: 15),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTimeSlots() {
     return Wrap(
       spacing: 12.0,
@@ -264,7 +325,7 @@ class _DetailsPriceScreenState extends State<DetailsPriceScreen> {
         return ChoiceChip(
           label: Text(time),
           selected: isSelected,
-          onSelected: (selected) => _onTimeSelected(time),
+          onSelected: (selected) => setState(() => _selectedTimeSlot = time),
           selectedColor: const Color(0xFF0A7AFF),
           labelStyle: TextStyle(
             color: isSelected ? Colors.white : Colors.black,
@@ -285,24 +346,20 @@ class _DetailsPriceScreenState extends State<DetailsPriceScreen> {
     );
   }
 
-  // --- WIDGET HELPER PARA EL RESUMEN ---
   Widget _buildSummaryBlock() {
     if (_selectedDay != null && _selectedTimeSlot != null) {
       final String formattedDate = DateFormat.yMMMMEEEEd(
         'es_ES',
       ).format(_selectedDay!);
-      final String summaryText = 'Cita: $formattedDate | $_selectedTimeSlot';
-
       return Container(
         padding: const EdgeInsets.all(16),
-        width: double.infinity,
         decoration: BoxDecoration(
           color: Colors.blue.shade50,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: Colors.blue.shade200),
         ),
         child: Text(
-          summaryText,
+          'Cita: $formattedDate | $_selectedTimeSlot',
           textAlign: TextAlign.center,
           style: TextStyle(
             color: Colors.blue.shade900,

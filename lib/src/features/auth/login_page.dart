@@ -61,12 +61,12 @@ class _LoginPageState extends State<LoginPage> {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    // CORRECCIÓN: Usamos Center + SingleChildScrollView para evitar el error del teclado
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-          onPressed: () {},
+          // CORRECCIÓN: El botón ahora navega hacia atrás
+          onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
           'Iniciar sesión',
@@ -133,26 +133,26 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Flexible(
-                    child: const Text(
+                  const Flexible(
+                    child: Text(
                       'Recordarme',
                       overflow: TextOverflow.ellipsis,
                       softWrap: false,
                     ),
                   ),
-                  const SizedBox(width: 16), // Espacio entre los textos
-                  GestureDetector(
-                    onTap: () {
-                      // CAMBIO: Navegar a la pantalla de registro
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const SignUpPage(),
-                        ),
-                      );
-                    },
-                    child: Flexible(
+                  const Spacer(), // Usa Spacer para empujar el siguiente texto a la derecha
+                  Flexible(
+                    child: GestureDetector(
+                      onTap: () {
+                        // Navegar a la pantalla de registro
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const SignUpPage(),
+                          ),
+                        );
+                      },
                       child: Text(
-                        'Regístrate',
+                        '¿Olvidaste tu contraseña?',
                         style: TextStyle(
                           color: Theme.of(context).primaryColor,
                           fontWeight: FontWeight.bold,
@@ -186,9 +186,8 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
 
-              SizedBox(
-                height: screenHeight * 0.05,
-              ), // Espacio fijo en lugar de Spacer vertical
+              SizedBox(height: screenHeight * 0.05),
+
               // FOOTER: REGISTRARSE
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -199,7 +198,12 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      context.showSnackBar('Ir a pantalla de registro');
+                      // CORRECCIÓN: Ahora navega a la pantalla de registro
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const SignUpPage(),
+                        ),
+                      );
                     },
                     child: Text(
                       'Regístrate',

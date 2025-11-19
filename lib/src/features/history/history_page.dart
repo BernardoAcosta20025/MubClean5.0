@@ -11,11 +11,15 @@ class HistoryPage extends StatelessWidget {
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F5F7),
         appBar: AppBar(
-          title: const Text("Mis Servicios", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+          title: const Text(
+            "Mis Servicios",
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+          ),
           centerTitle: true,
           backgroundColor: Colors.white,
           elevation: 0,
-          automaticallyImplyLeading: false, // Sin flecha atrás porque es navegación principal
+          automaticallyImplyLeading:
+              false, // Sin flecha atrás porque es navegación principal
           bottom: const TabBar(
             labelColor: Color(0xFF0A7AFF), // Color del texto activo
             unselectedLabelColor: Colors.grey,
@@ -31,7 +35,7 @@ class HistoryPage extends StatelessWidget {
           children: [
             // Vista 1: Servicios Activos
             _buildActiveServices(),
-            
+
             // Vista 2: Servicios Anteriores
             _buildPastServices(),
           ],
@@ -45,8 +49,9 @@ class HistoryPage extends StatelessWidget {
     // Datos de prueba (Mock Data) para visualizar el diseño
     final List<Map<String, dynamic>> activeServices = [
       {
-        'service': 'Lavado de Sala en L',
-        'status': 'Cotización Pendiente',
+        'service':
+            'Lavado de Sala en L y dos sillones individuales adicionales',
+        'status': 'Cotización Pendiente de Aprobación por el Cliente',
         'date': 'Solicitado el 12 Nov',
         'color': const Color(0xFFFFA000), // Naranja
         'icon': Icons.access_time_filled,
@@ -57,7 +62,7 @@ class HistoryPage extends StatelessWidget {
         'date': 'Viernes, 15 Nov - 10:00 AM',
         'color': const Color(0xFF0A7AFF), // Azul
         'icon': Icons.calendar_today,
-      }
+      },
     ];
 
     if (activeServices.isEmpty) {
@@ -83,7 +88,7 @@ class HistoryPage extends StatelessWidget {
         'date': '20 Octubre 2023',
         'color': Colors.green,
         'icon': Icons.check_circle,
-      }
+      },
     ];
 
     return ListView.builder(
@@ -126,10 +131,10 @@ class _ServiceCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
-          )
+          ),
         ],
       ),
       child: Column(
@@ -138,28 +143,48 @@ class _ServiceCard extends StatelessWidget {
           // Cabecera con estado
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: (data['color'] as Color).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(data['icon'], size: 14, color: data['color']),
-                    const SizedBox(width: 5),
-                    Text(
-                      data['status'],
-                      style: TextStyle(
-                        color: data['color'],
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
+              Expanded(
+                // <-- FIX: Permite que el estado se encoja si es necesario
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Color.fromARGB(
+                      (255 * 0.1).round(),
+                      // ignore: deprecated_member_use
+                      (data['color'] as Color).red,
+                      // ignore: deprecated_member_use
+                      (data['color'] as Color).green,
+                      // ignore: deprecated_member_use
+                      (data['color'] as Color).blue,
                     ),
-                  ],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize:
+                        MainAxisSize.min, // Para que no ocupe todo el ancho
+                    children: [
+                      Icon(data['icon'], size: 14, color: data['color']),
+                      const SizedBox(width: 5),
+                      Flexible(
+                        // <-- FIX: Permite que el texto se ajuste
+                        child: Text(
+                          data['status'],
+                          style: TextStyle(
+                            color: data['color'],
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 10), // Espacio para que no se pegue
               const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
             ],
           ),
@@ -168,6 +193,8 @@ class _ServiceCard extends StatelessWidget {
           Text(
             data['service'],
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            maxLines: 2, // Permite hasta 2 líneas
+            overflow: TextOverflow.ellipsis, // Corta el texto si es muy largo
           ),
           const SizedBox(height: 5),
           // Fecha

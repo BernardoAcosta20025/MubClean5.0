@@ -133,15 +133,23 @@ class _ProfileTabState extends State<ProfileTab> {
         children: [
           Icon(icon, color: Colors.blue),
           const SizedBox(width: 15),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(color: Colors.grey, fontSize: 12),
-              ),
-              Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
-            ],
+          Expanded(
+            // <-- FIX: Permite que la columna ocupe el espacio restante
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+                Text(
+                  value,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  overflow: TextOverflow
+                      .ellipsis, // <-- FIX: Añade puntos suspensivos si el texto es muy largo
+                ),
+              ],
+            ),
           ),
         ],
       ),

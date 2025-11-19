@@ -1,29 +1,36 @@
 // lib/src/features/quotation/models/quotation_model.dart
 
-// Un enum para saber qué tipo de mueble es
-enum FurnitureType { sofa, silla, alfombra, otros }
-
-// Una clase simple para guardar la cotización mientras el usuario avanza
+/// A comprehensive model to hold all data from the quotation flow.
 class Quotation {
-  // Usamos un Set para que no se puedan repetir
-  final Set<FurnitureType> selectedFurniture;
+  // Step 1
+  final String selectedService;
+  // Step 2
+  final String furnitureType;
+  final int furnitureQuantity;
+  // Step 3
+  final String dirtLevel;
+  final List<String> stainTypes;
+  // Step 4
+  final bool petFriendly;
+  final bool ecoFriendly;
+  final String notes;
+  // Step 5
+  final String address;
+  final String accessInstructions;
 
-  // Más campos que añadiremos en el futuro:
-  // DateTime? selectedDate;
-  // List<File>? photos;
-  // double? finalPrice;
+  Quotation({
+    required this.selectedService,
+    required this.furnitureType,
+    required this.furnitureQuantity,
+    required this.dirtLevel,
+    required this.stainTypes,
+    required this.petFriendly,
+    required this.ecoFriendly,
+    required this.notes,
+    required this.address,
+    required this.accessInstructions,
+  });
 
-  Quotation({required this.selectedFurniture});
-
-  // Constructor inicial vacío
-  factory Quotation.empty() {
-    return Quotation(selectedFurniture: <FurnitureType>{});
-  }
-
-  // Método para "copiar" y modificar el objeto
-  Quotation copyWith({Set<FurnitureType>? selectedFurniture}) {
-    return Quotation(
-      selectedFurniture: selectedFurniture ?? this.selectedFurniture,
-    );
-  }
+  // A copyWith method could be added here for state management,
+  // but is omitted for now to focus on the data flow fix.
 }

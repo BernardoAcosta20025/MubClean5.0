@@ -1,17 +1,14 @@
-// lib/src/features/home/home_page.dart
 import 'package:flutter/material.dart';
-// import 'package:supabase_flutter/supabase_flutter.dart'; // ✨ BORRADO: Esta línea causaba el conflicto
-import 'package:mubclean/main.dart'; // Importa 'main.dart' para la variable global 'supabase'
+import 'package:flutter/services.dart' show rootBundle;
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
+import 'package:mubclean/main.dart'; // Cliente de Supabase global
 import 'package:mubclean/src/features/home/widgets/home_widgets.dart';
 import 'package:mubclean/src/features/home/profile_tab.dart';
-
-// --- IMPORTS COMBINADOS (Tus cambios + los de tu compañero) ---
-import 'package:flutter/services.dart'
-    show rootBundle; // Importa 'rootBundle' para cargar assets
-import 'dart:typed_data';
-import 'dart:ui' as ui; // Para el asset de imagen (Tuyo)
-import 'package:mubclean/src/features/quotation/screens/furniture_select_screen.dart'; // (Tuyo)
-import 'package:mubclean/src/features/history/history_page.dart'; // (De tu compañero)
+// ✨ CAMBIO: Importamos la pantalla del Paso 1 del nuevo flujo
+import 'package:mubclean/src/features/quotation/screens/service_selection_screen.dart';
+import 'package:mubclean/src/features/history/history_page.dart'; // Pantalla de historial
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,22 +20,19 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0; // 0: Inicio, 1: Historial, 2: Perfil
   String _userName = 'Usuario';
-  
-  // ✨ TU CAMBIO (Logo)
-  ui.Image? _logoImage; // Variable para cargar el logo
+  ui.Image? _logoImage;
 
   @override
   void initState() {
     super.initState();
     _loadUserName();
-    _loadLogoAsset(); // ✨ TU CAMBIO (Cargar el logo al iniciar)
+    _loadLogoAsset();
   }
 
   // Cargar el nombre del usuario desde Supabase
   Future<void> _loadUserName() async {
     try {
-      // Ahora 'supabase' se refiere sin ambigüedad al de 'main.dart'
-      final userId = supabase.auth.currentUser?.id; 
+      final userId = supabase.auth.currentUser?.id;
       if (userId != null) {
         final data = await supabase
             .from('profiles')
@@ -54,15 +48,24 @@ class _HomePageState extends State<HomePage> {
         }
       }
     } catch (e) {
-      // Si falla, se queda como 'Usuario'
+      // MEJORA: Mostrar un error si la carga del nombre falla
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar los datos del usuario: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      debugPrint('*** Error en _loadUserName: $e');
     }
   }
 
-  // ✨ TU CAMBIO (Función para cargar el logo)
+  // Cargar el logo de la empresa como asset de imagen
   Future<void> _loadLogoAsset() async {
-    // Asegúrate que la ruta 'assets/mubclean_logo.png' exista en tu pubspec.yaml
     try {
-      final ByteData data = await rootBundle.load('assets/mubclean_logo.png');
+      // CORRECCIÓN: La ruta del asset era incorrecta.
+      final ByteData data = await rootBundle.load('assets/image/Logo.png');
       final Uint8List bytes = data.buffer.asUint8List();
       final ui.Codec codec = await ui.instantiateImageCodec(bytes);
       final ui.FrameInfo frameInfo = await codec.getNextFrame();
@@ -71,59 +74,95 @@ class _HomePageState extends State<HomePage> {
           _logoImage = frameInfo.image;
         });
       }
-    } catch (e, st) {
-      debugPrint("Error al cargar el logo: $e\n$st");
+    } catch (e) {
+      // MEJORA: Mostrar un error si la carga del logo falla
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar el logo: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      debugPrint("Error al cargar el logo: $e");
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Usamos el código de tu compañero para el AppBar (es más limpio)
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F7),
-      
-      // Lógica de tu compañero (buena idea):
-      // Solo mostramos el AppBar si estamos en la pestaña 0 (Inicio)
-      appBar: _selectedIndex == 0 ? AppBar(
-        backgroundColor: const Color(0xFFF5F5F7),
-        elevation: 0,
-        toolbarHeight: 80,
-        automaticallyImplyLeading: false,
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(2),
-              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-              child: const CircleAvatar(
-                radius: 24,
-                backgroundColor: Color(0xFF0A7AFF),
-                child: Icon(Icons.person, color: Colors.white, size: 30),
+
+      // AppBar solo visible en la pestaña de Inicio (índice 0)
+      appBar: _selectedIndex == 0
+          ? AppBar(
+              backgroundColor: const Color(0xFFF5F5F7),
+              elevation: 0,
+              toolbarHeight: 80,
+              automaticallyImplyLeading: false,
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const CircleAvatar(
+                      radius: 24,
+                      backgroundColor: Color(0xFF0A7AFF),
+                      child: Icon(Icons.person, color: Colors.white, size: 30),
+                    ),
+                  ),
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Hola,',
+                          style: TextStyle(color: Colors.grey, fontSize: 14),
+                        ),
+                        Text(
+                          _userName,
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(width: 15),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Hola,', style: TextStyle(color: Colors.grey, fontSize: 14)),
-                Text(_userName, style: const TextStyle(color: Colors.black, fontSize: 22, fontWeight: FontWeight.bold)),
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'La pantalla de notificaciones aún no está implementada.',
+                        ),
+                        backgroundColor: Colors.blue,
+                      ),
+                    );
+                  },
+                  icon: const Icon(
+                    Icons.notifications_none_rounded,
+                    color: Colors.black87,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 10),
               ],
+            )
+          : AppBar(
+              title: Text(_getAppBarTitle()),
+              centerTitle: true,
+              elevation: 1,
             ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            onPressed: (){},
-            icon: const Icon(Icons.notifications_none_rounded, color: Colors.black87, size: 28),
-          ),
-          const SizedBox(width: 10),
-        ],
-      ) 
-      // Si no es la pestaña 0, creamos un AppBar diferente
-      : AppBar(
-          title: Text(_getAppBarTitle()),
-          centerTitle: true,
-          elevation: 1,
-      ),
 
       body: _getSelectedView(),
 
@@ -134,8 +173,14 @@ class _HomePageState extends State<HomePage> {
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Inicio'),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Historial'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_filled),
+            label: 'Inicio',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.history),
+            label: 'Historial',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
       ),
@@ -143,37 +188,32 @@ class _HomePageState extends State<HomePage> {
   }
 
   String _getAppBarTitle() {
-    // Esta función solo se usa si _selectedIndex != 0
     switch (_selectedIndex) {
-      case 1: return 'Historial de Servicios';
-      case 2: return 'Mi Perfil';
-      default: return '';
+      case 1:
+        return 'Historial de Servicios';
+      case 2:
+        return 'Mi Perfil';
+      default:
+        return '';
     }
   }
 
-  // --- VISTA COMBINADA ---
   Widget _getSelectedView() {
     switch (_selectedIndex) {
       case 0:
-        // ✨ TU CAMBIO: Pasamos el logo a HomeContent
-        return HomeContent(logoImage: _logoImage); 
+        return HomeContent(logoImage: _logoImage);
       case 1:
-        // ✨ CAMBIO DE TU COMPAÑERO: Mostramos la pág. de Historial
-        // Si esta línea da error, ¡revisa el import de la línea 15!
         return const HistoryPage();
       case 2:
         return const ProfileTab();
       default:
-        // ✨ TU CAMBIO: Pasamos el logo a HomeContent
         return HomeContent(logoImage: _logoImage);
     }
   }
 }
 
-// --- CONTENIDO DEL HOME (COMBINADO Y LIMPIADO) ---
 class HomeContent extends StatelessWidget {
-  // ✨ TU CAMBIO: Aceptamos el logo
-  final ui.Image? logoImage; 
+  final ui.Image? logoImage;
 
   const HomeContent({super.key, this.logoImage});
 
@@ -182,43 +222,41 @@ class HomeContent extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        
-        // ✨ TU CAMBIO: Mostramos el logo si existe
+        // Logo
         if (logoImage != null)
-          Align(
-            alignment: Alignment.center,
-            child: SizedBox(
-              width: 120, // Tamaño fijo (más simple)
-              height: 120,
-              child: RawImage(image: logoImage, fit: BoxFit.contain),
-            ),
-          )
-        else
-          // Fallback si el logo no ha cargado (como en el código de tu compañero)
           Align(
             alignment: Alignment.center,
             child: SizedBox(
               width: 120,
               height: 120,
-              // Asegúrate que esta ruta exista en tu pubspec.yaml
-              // Tu compañero usa 'assets/image/Logo.png'
-              child: Image.asset('assets/image/Logo.png', fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) => 
-                  const Icon(Icons.image, size: 100, color: Colors.grey),
-              ), 
+              child: RawImage(image: logoImage, fit: BoxFit.contain),
+            ),
+          )
+        else
+          Align(
+            alignment: Alignment.center,
+            child: SizedBox(
+              width: 120,
+              height: 120,
+              child: Image.asset(
+                'assets/image/Logo.png',
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) =>
+                    const Icon(Icons.image, size: 100, color: Colors.grey),
+              ),
             ),
           ),
-        
+
         const SizedBox(height: 10),
-        
-        // Imagen de Mueble (de tu compañero)
+
+        // Imagen Central
         Image.asset(
-          'assets/image/Mueble.png', 
+          'assets/image/Mueble.png',
           height: 150,
-          errorBuilder: (context, error, stackTrace) => 
-            const Icon(Icons.image, size: 100, color: Colors.grey),
+          errorBuilder: (context, error, stackTrace) =>
+              const Icon(Icons.image, size: 100, color: Colors.grey),
         ),
-        
+
         const SizedBox(height: 15),
 
         const Center(
@@ -226,7 +264,11 @@ class HomeContent extends StatelessWidget {
             children: [
               Text(
                 "¡Estamos listos para limpiar!",
-                style: TextStyle(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.black87,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               SizedBox(height: 5),
               Text(
@@ -240,45 +282,55 @@ class HomeContent extends StatelessWidget {
 
         const SizedBox(height: 40),
 
-        // 3. SECCIÓN AYUDA Y SOPORTE
-        const Text("Ayuda y Soporte", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        // Ayuda y Soporte
+        const Text(
+          "Ayuda y Soporte",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 15),
-        
-        const QuickAccessItem(icon: Icons.support_agent_rounded, title: "Contactar Soporte"),
-        const QuickAccessItem(icon: Icons.info_outline, title: "Preguntas Frecuentes"),
-        
+
+        const QuickAccessItem(
+          icon: Icons.support_agent_rounded,
+          title: "Contactar Soporte",
+        ),
+        const QuickAccessItem(
+          icon: Icons.info_outline,
+          title: "Preguntas Frecuentes",
+        ),
+
         const SizedBox(height: 40),
 
-        // 4. BOTÓN "COTIZAR UN SERVICIO"
-        // ✨ TU CAMBIO: Botón que NAVEGA (limpié el código duplicado)
+        // Botón Cotizar
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
             onPressed: () {
-              // Navegamos a tu pantalla
+              // ✨ CAMBIO: Navegamos al NUEVO FLUJO (Paso 1: Selección de Servicio)
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const FurnitureSelectScreen(),
+                  builder: (context) => const ServiceSelectionScreen(),
                 ),
               );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF0A7AFF),
               padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             child: const Text(
               'Cotizar un Servicio',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.white, // Aseguramos que el texto sea blanco
+                color: Colors.white,
               ),
             ),
-          ), 
-        ), 
-        
+          ),
+        ),
+
         const SizedBox(height: 20),
       ],
     );
