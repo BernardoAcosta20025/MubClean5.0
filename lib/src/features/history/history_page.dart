@@ -5,7 +5,6 @@ class HistoryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Usamos DefaultTabController para manejar las pestañas fácilmente
     return DefaultTabController(
       length: 2, // Dos pestañas: Activos y Anteriores
       child: Scaffold(
@@ -15,11 +14,11 @@ class HistoryPage extends StatelessWidget {
           centerTitle: true,
           backgroundColor: Colors.white,
           elevation: 0,
-          automaticallyImplyLeading: false, // Sin flecha atrás porque es navegación principal
+          automaticallyImplyLeading: false,
           bottom: const TabBar(
-            labelColor: Color(0xFF0A7AFF), // Color del texto activo
+            labelColor: Color(0xFF0A7AFF),
             unselectedLabelColor: Colors.grey,
-            indicatorColor: Color(0xFF0A7AFF), // Color de la rayita de abajo
+            indicatorColor: Color(0xFF0A7AFF),
             indicatorSize: TabBarIndicatorSize.label,
             tabs: [
               Tab(text: "Activos"),
@@ -29,10 +28,7 @@ class HistoryPage extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
-            // Vista 1: Servicios Activos
             _buildActiveServices(),
-            
-            // Vista 2: Servicios Anteriores
             _buildPastServices(),
           ],
         ),
@@ -40,30 +36,14 @@ class HistoryPage extends StatelessWidget {
     );
   }
 
-  // --- VISTA DE SERVICIOS ACTIVOS ---
   Widget _buildActiveServices() {
-    // Datos de prueba (Mock Data) para visualizar el diseño
     final List<Map<String, dynamic>> activeServices = [
-      {
-        'service': 'Lavado de Sala en L',
-        'status': 'Cotización Pendiente',
-        'date': 'Solicitado el 12 Nov',
-        'color': const Color(0xFFFFA000), // Naranja
-        'icon': Icons.access_time_filled,
-      },
-      {
-        'service': 'Limpieza de Colchón King',
-        'status': 'Agendado',
-        'date': 'Viernes, 15 Nov - 10:00 AM',
-        'color': const Color(0xFF0A7AFF), // Azul
-        'icon': Icons.calendar_today,
-      }
+      {'service': 'Lavado de Sala en L', 'status': 'Cotización Pendiente', 'date': 'Solicitado el 12 Nov', 'color': const Color(0xFFFFA000), 'icon': Icons.access_time_filled},
+      {'service': 'Limpieza de Colchón King', 'status': 'Agendado', 'date': 'Viernes, 15 Nov - 10:00 AM', 'color': const Color(0xFF0A7AFF), 'icon': Icons.calendar_today},
     ];
-
     if (activeServices.isEmpty) {
       return _buildEmptyState("No tienes servicios en curso");
     }
-
     return ListView.builder(
       padding: const EdgeInsets.all(20),
       itemCount: activeServices.length,
@@ -73,19 +53,10 @@ class HistoryPage extends StatelessWidget {
     );
   }
 
-  // --- VISTA DE SERVICIOS ANTERIORES ---
   Widget _buildPastServices() {
-    // Simulamos una lista con un servicio finalizado
     final List<Map<String, dynamic>> pastServices = [
-      {
-        'service': 'Lavado de Alfombra',
-        'status': 'Finalizado',
-        'date': '20 Octubre 2023',
-        'color': Colors.green,
-        'icon': Icons.check_circle,
-      }
+      {'service': 'Lavado de Alfombra', 'status': 'Finalizado', 'date': '20 Octubre 2023', 'color': Colors.green, 'icon': Icons.check_circle},
     ];
-
     return ListView.builder(
       padding: const EdgeInsets.all(20),
       itemCount: pastServices.length,
@@ -95,7 +66,6 @@ class HistoryPage extends StatelessWidget {
     );
   }
 
-  // Widget para mostrar cuando no hay nada
   Widget _buildEmptyState(String message) {
     return Center(
       child: Column(
@@ -110,7 +80,7 @@ class HistoryPage extends StatelessWidget {
   }
 }
 
-// --- WIDGET DE TARJETA DE SERVICIO ---
+// WIDGET DE TARJETA DE SERVICIO
 class _ServiceCard extends StatelessWidget {
   final Map<String, dynamic> data;
 
@@ -135,7 +105,6 @@ class _ServiceCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Cabecera con estado
           Row(
             children: [
               Container(
@@ -164,13 +133,11 @@ class _ServiceCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          // Título del servicio
           Text(
             data['service'],
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 5),
-          // Fecha
           Text(
             data['date'],
             style: TextStyle(color: Colors.grey[600], fontSize: 14),
