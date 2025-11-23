@@ -1,216 +1,261 @@
+import 'dart:io'; // Necesario para manejar los archivos de las fotos
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'package:image_picker/image_picker.dart'; 
+import 'package:mubclean/src/features/quotation/screens/location_map_screen.dart';
 
 class PhotoUploadScreen extends StatefulWidget {
-  const PhotoUploadScreen({super.key});
+  // Datos que vienen de la pantalla anterior
+  final String selectedService;
+  final List<Map<String, dynamic>> furnitureItems;
+  final double itemsTotal;
+
+  const PhotoUploadScreen({
+    super.key,
+    required this.selectedService,
+    required this.furnitureItems,
+    required this.itemsTotal,
+  });
 
   @override
   State<PhotoUploadScreen> createState() => _PhotoUploadScreenState();
 }
 
 class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
-  final Map<String, XFile?> _images = {
-    'Frente': null,
-    'Atrás': null,
-    'Lado izquierdo': null,
-    'Lado derecho': null,
-    'Zona Afectada': null,
-  };
-
+  // Lista para guardar las fotos tomadas
+  final List<XFile> _takenPhotos = [];
   final ImagePicker _picker = ImagePicker();
-  bool _isConfirmButtonEnabled = false;
+  final int _maxPhotos = 5; 
 
-  @override
-  void initState() {
-    super.initState();
-    _checkConfirmationEligibility();
-  }
+  // Función para abrir la cámara
+  Future<void> _takePhoto() async {
+    if (_takenPhotos.length >= _maxPhotos) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Ya has tomado el máximo de 5 fotos.")));
+      return;
+    }
 
-  Future<void> _pickImage(String type) async {
-    final ImageSource? source = await showModalBottomSheet<ImageSource>(
-      context: context,
-      builder: (BuildContext context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: const Text('Cámara'),
-                onTap: () {
-                  Navigator.pop(context, ImageSource.camera);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Galería'),
-                onTap: () {
-                  Navigator.pop(context, ImageSource.gallery);
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
+    try {
+      final XFile? photo = await _picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 80, // Optimizar tamaño para subir más rápido a Supabase
+      );
 
-    if (source != null) {
-      final XFile? pickedFile = await _picker.pickImage(source: source);
-      if (pickedFile != null) {
+      if (photo != null) {
         setState(() {
-          _images[type] = pickedFile;
-          _checkConfirmationEligibility();
+          _takenPhotos.add(photo);
         });
       }
+    } catch (e) {
+       debugPrint("Error al tomar foto: $e");
+       ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("No se pudo abrir la cámara.")));
     }
   }
 
-  void _checkConfirmationEligibility() {
+  void _removePhoto(int index) {
     setState(() {
-      _isConfirmButtonEnabled = _images['Zona Afectada'] != null;
+      _takenPhotos.removeAt(index);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    const Color mubBlue = Color(0xFF0A7AFF);
+    bool canContinue = _takenPhotos.isNotEmpty;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Fotos del mueble'),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 0,
-        foregroundColor: Colors.black,
-      ),
       backgroundColor: const Color(0xFFF5F5F7),
+      appBar: AppBar(
+        title: const Text('Evidencia Fotográfica'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+        centerTitle: true,
+      ),
       body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Toma o sube fotos de tu mueble para revisar mejor su estado.',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                    "Evidencia Fotográfica del Mueble",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
                   ),
-                  const SizedBox(height: 20),
-                  Expanded(
-                    child: GridView.count(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 15,
-                      mainAxisSpacing: 15,
-                      children: [
-                        _buildPhotoCard('Frente', 'Frente', Icons.camera_alt),
-                        _buildPhotoCard('Atrás', 'Atrás', Icons.camera_alt),
-                        _buildPhotoCard('Zona Afectada', 'Zona Afectada', Icons.warning),
-                        _buildPhotoCard('Lado izquierdo', 'Lado izquierdo', Icons.camera_alt),
-                        _buildPhotoCard('Lado derecho', 'Lado derecho', Icons.camera_alt),
+                  const SizedBox(height: 16),
+                  RichText(
+                    text: TextSpan(
+                      style: TextStyle(fontSize: 15, color: Colors.grey[700], height: 1.5),
+                      children: const [
+                        TextSpan(text: "Las fotos nos permiten evaluar con precisión el estado de tu mueble.\n\n"),
+                        TextSpan(
+                          text: "📸 Recomendación: ",
+                          style: TextStyle(fontWeight: FontWeight.bold, color: mubBlue),
+                        ),
+                        TextSpan(text: "Toma fotos de la zona más afectada."),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 40),
+
+                  // 2. BOTÓN GIGANTE DE CÁMARA
+                  Center(
+                    child: GestureDetector(
+                      onTap: _takePhoto,
+                      child: Container(
+                        height: 180,
+                        width: 180,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: mubBlue.withOpacity(0.3), width: 4),
+                          boxShadow: [
+                            BoxShadow(color: mubBlue.withOpacity(0.2), blurRadius: 20, spreadRadius: 5)
+                          ]
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: const BoxDecoration(
+                                color: mubBlue,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.camera_alt, size: 40, color: Colors.white),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              "Abrir Cámara",
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: mubBlue),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  // 3. CARRUSEL DE FOTOS
                   Text(
-                    'Las fotos nos ayudarán a evaluar mejor la suciedad, el material y los detalles del mueble antes del servicio.',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    "Fotos tomadas: ${_takenPhotos.length}/$_maxPhotos (Mínimo 1 requerida)",
+                    style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 100,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _maxPhotos,
+                      separatorBuilder: (context, index) => const SizedBox(width: 12),
+                      itemBuilder: (context, index) {
+                        if (index < _takenPhotos.length) {
+                          return Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.file(
+                                  File(_takenPhotos[index].path),
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Positioned(
+                                top: 4,
+                                right: 4,
+                                child: GestureDetector(
+                                  onTap: () => _removePhoto(index),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                                    child: const Icon(Icons.close, size: 14, color: Colors.white),
+                                  ),
+                                ),
+                              )
+                            ],
+                          );
+                        } else {
+                          return Container(
+                            width: 100,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: Center(child: Icon(Icons.add_a_photo, color: Colors.grey[400])),
+                          );
+                        }
+                      },
+                    ),
                   ),
                   const SizedBox(height: 30),
                 ],
               ),
             ),
           ),
-          SafeArea(
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20.0),
+
+          // 4. BARRA INFERIOR (¡AQUÍ ESTÁ LA CORRECCIÓN!)
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
               color: Colors.white,
-              child: ElevatedButton(
-                onPressed: _isConfirmButtonEnabled
-                    ? () {
-                        // TODO: Implement navigation and pass image data
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Fotos confirmadas (Navegar)'),),
-                        );
-                        Navigator.pop(context); // For demonstration
-                      }
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0A7AFF),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  disabledBackgroundColor: Colors.grey.shade300,
-                ),
-                child: const Text(
-                  'Confirmar fotos',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, -5))],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text("Total Estimado:", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      Text("\$${widget.itemsTotal.toStringAsFixed(2)}", style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87)),
+                    ],
                   ),
                 ),
-              ),
+                ElevatedButton(
+                  onPressed: canContinue ? () {
+                    // --- CORRECCIÓN VITAL PARA SUPABASE ---
+                    
+                    // 1. Convertimos las fotos a una lista de rutas (Strings)
+                    List<String> rutasDeFotos = _takenPhotos.map((foto) => foto.path).toList();
+
+                    // 2. Guardamos las fotos en el ÚLTIMO mueble añadido (o el actual)
+                    // Suponiendo que estamos editando el último de la lista:
+                    if (widget.furnitureItems.isNotEmpty) {
+                      // Accedemos al último elemento y le agregamos la clave 'photos'
+                      widget.furnitureItems.last['photos'] = rutasDeFotos;
+                    }
+
+                    // 3. Pasamos la lista YA ACTUALIZADA al mapa
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LocationMapScreen(
+                          selectedService: widget.selectedService,
+                          furnitureItems: widget.furnitureItems, // ¡Ahora sí lleva fotos!
+                          itemsTotal: widget.itemsTotal,
+                        ),
+                      ),
+                    );
+                  } : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: mubBlue,
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    disabledBackgroundColor: Colors.grey.shade300,
+                  ),
+                  child: const Text("Continuar", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                ),
+              ],
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildPhotoCard(String type, String title, IconData icon) {
-    final bool hasImage = _images[type] != null;
-    final bool isAffectedArea = type == 'Zona Afectada';
-
-    return GestureDetector(
-      onTap: () => _pickImage(type),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isAffectedArea
-                ? Colors.red.shade400
-                : (hasImage ? const Color(0xFF0A7AFF) : Colors.grey.shade300),
-            width: isAffectedArea ? 2 : 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: hasImage
-            ? ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.file(
-                  File(_images[type]!.path),
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: double.infinity,
-                ),
-              )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, size: 40, color: Colors.grey[500]),
-                  const SizedBox(height: 8),
-                  Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[700],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
       ),
     );
   }

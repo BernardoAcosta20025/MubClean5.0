@@ -53,7 +53,7 @@ class _HomePageState extends State<HomePage> {
   // Cargar el logo de la empresa como asset de imagen
   Future<void> _loadLogoAsset() async {
     try {
-      final ByteData data = await rootBundle.load('assets/mubclean_logo.png');
+      final ByteData data = await rootBundle.load('assets/image/Logo.png');
       final Uint8List bytes = data.buffer.asUint8List();
       final ui.Codec codec = await ui.instantiateImageCodec(bytes);
       final ui.FrameInfo frameInfo = await codec.getNextFrame();
@@ -73,41 +73,61 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F7),
-      
-      appBar: _selectedIndex != 0 ? null : AppBar( // Solo muestra AppBar en Inicio
-        backgroundColor: const Color(0xFFF5F5F7),
-        elevation: 0,
-        toolbarHeight: 80,
-        automaticallyImplyLeading: false,
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(2),
-              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-              child: const CircleAvatar(
-                radius: 24,
-                backgroundColor: Color(0xFF0A7AFF),
-                child: Icon(Icons.person, color: Colors.white, size: 30),
+
+      appBar: _selectedIndex != 0
+          ? null
+          : AppBar(
+              // Solo muestra AppBar en Inicio
+              backgroundColor: const Color(0xFFF5F5F7),
+              elevation: 0,
+              toolbarHeight: 80,
+              automaticallyImplyLeading: false,
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const CircleAvatar(
+                      radius: 24,
+                      backgroundColor: Color(0xFF0A7AFF),
+                      child: Icon(Icons.person, color: Colors.white, size: 30),
+                    ),
+                  ),
+                  const SizedBox(width: 15),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Hola,',
+                        style: TextStyle(color: Colors.grey, fontSize: 14),
+                      ),
+                      Text(
+                        _userName,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(width: 15),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Hola,', style: TextStyle(color: Colors.grey, fontSize: 14)),
-                Text(_userName, style: const TextStyle(color: Colors.black, fontSize: 22, fontWeight: FontWeight.bold)),
+              actions: [
+                IconButton(
+                  onPressed: () {},
+                  icon: const Icon(
+                    Icons.notifications_none_rounded,
+                    color: Colors.black87,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 10),
               ],
             ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            onPressed: (){},
-            icon: const Icon(Icons.notifications_none_rounded, color: Colors.black87, size: 28),
-          ),
-          const SizedBox(width: 10),
-        ],
-      ),
 
       body: _getSelectedView(), // Aquí se decide qué pantalla mostrar
 
@@ -140,7 +160,7 @@ class _HomePageState extends State<HomePage> {
         return HomeContent(logoImage: _logoImage);
       case 1:
         // LLAMADA FINAL Y CORREGIDA: Sin 'const'
-        return const HistoryPage(); 
+        return const HistoryPage();
       case 2:
         return const ProfileTab();
       default:
@@ -165,14 +185,14 @@ class HomeContent extends StatelessWidget {
           child: SizedBox(
             width: 120,
             height: 120,
-            child: logoImage != null 
-              ? RawImage(image: logoImage, fit: BoxFit.contain)
-              : Image.asset('assets/image/Logo.png', fit: BoxFit.contain),
+            child: logoImage != null
+                ? RawImage(image: logoImage, fit: BoxFit.contain)
+                : Image.asset('assets/image/Logo.png', fit: BoxFit.contain),
           ),
         ),
         const SizedBox(height: 10),
         Image.asset(
-          'assets/image/Mueble.png', 
+          'assets/image/Mueble.png',
           height: 150,
           errorBuilder: (context, error, stackTrace) =>
               const Icon(Icons.image, size: 100, color: Colors.grey),
@@ -199,7 +219,7 @@ class HomeContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 25),
-        
+
         // ✨ 2. BOTÓN COTIZAR CONECTADO
         // Reemplazamos CotizarServicioButton por un ElevatedButton directo con navegación
         SizedBox(
@@ -218,23 +238,34 @@ class HomeContent extends StatelessWidget {
               backgroundColor: const Color(0xFF0A7AFF),
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             child: const Text(
               'Cotizar un Servicio',
               style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white),
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
           ),
         ),
 
         const SizedBox(height: 40),
-        const Text("Ayuda y Soporte", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text(
+          "Ayuda y Soporte",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 15),
-        const QuickAccessItem(icon: Icons.support_agent_rounded, title: "Contactar Soporte"),
-        const QuickAccessItem(icon: Icons.info_outline, title: "Preguntas Frecuentes"),
+        const QuickAccessItem(
+          icon: Icons.support_agent_rounded,
+          title: "Contactar Soporte",
+        ),
+        const QuickAccessItem(
+          icon: Icons.info_outline,
+          title: "Preguntas Frecuentes",
+        ),
         const SizedBox(height: 20),
       ],
     );

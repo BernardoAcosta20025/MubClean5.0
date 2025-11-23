@@ -17,9 +17,9 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  
+
   bool _isLoading = false;
-  
+
   // Variable para escuchar los eventos de Supabase
   late final StreamSubscription<AuthState> _authStateSubscription;
 
@@ -33,7 +33,7 @@ class _LoginPageState extends State<LoginPage> {
     // ESCUCHAMOS LOS CAMBIOS DE ESTADO
     _authStateSubscription = supabase.auth.onAuthStateChange.listen((data) {
       final event = data.event;
-      
+
       // SI EL EVENTO ES RECUPERACIÓN DE CONTRASEÑA...
       if (event == AuthChangeEvent.passwordRecovery) {
         // ... NAVEGAMOS A LA PANTALLA DE CAMBIAR CONTRASEÑA
@@ -84,7 +84,8 @@ class _LoginPageState extends State<LoginPage> {
 
   // Lógica para pedir el correo de recuperación
   Future<void> _recoverPassword() async {
-    final TextEditingController recoveryEmailController = TextEditingController();
+    final TextEditingController recoveryEmailController =
+        TextEditingController();
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -95,8 +96,14 @@ class _LoginPageState extends State<LoginPage> {
           decoration: const InputDecoration(hintText: 'Ingresa tu email'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Enviar')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Enviar'),
+          ),
         ],
       ),
     );
@@ -108,7 +115,8 @@ class _LoginPageState extends State<LoginPage> {
         );
         if (mounted) context.showSnackBar('¡Link enviado! Revisa tu correo.');
       } catch (error) {
-        if (mounted) context.showSnackBar('Error al enviar correo', isError: true);
+        if (mounted)
+          context.showSnackBar('Error al enviar correo', isError: true);
       }
     }
   }
@@ -116,23 +124,48 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Iniciar sesión', style: TextStyle(fontWeight: FontWeight.bold)), centerTitle: true),
+      appBar: AppBar(
+        title: const Text(
+          'Iniciar sesión',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+      ),
       body: Center(
         child: SingleChildScrollView(
           // Use screenWidth from helpers.dart
-          padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.06),
+          padding: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width * 0.06,
+          ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Correo electrónico', style: TextStyle(fontWeight: FontWeight.w500)),
+              const Text(
+                'Correo electrónico',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
               const SizedBox(height: 8),
-              TextFormField(controller: _emailController, decoration: const InputDecoration(hintText: 'Ingresa tu correo')),
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  hintText: 'Ingresa tu correo',
+                ),
+              ),
               const SizedBox(height: 24),
-              const Text('Contraseña', style: TextStyle(fontWeight: FontWeight.w500)),
+              const Text(
+                'Contraseña',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
               const SizedBox(height: 8),
-              TextFormField(controller: _passwordController, obscureText: true, decoration: const InputDecoration(hintText: 'Ingresa tu contraseña')),
-              
+              TextFormField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  hintText: 'Ingresa tu contraseña',
+                ),
+              ),
+
               const SizedBox(height: 16),
 
               // --- CAMBIO AQUÍ: QUITAMOS EL CHECKBOX "RECORDARME" ---
@@ -146,31 +179,64 @@ class _LoginPageState extends State<LoginPage> {
                     style: TextStyle(
                       color: Color(0xFF0A7AFF),
                       fontWeight: FontWeight.w600,
-                      fontSize: 14, // Un poquito más grande para que sea fácil de tocar
+                      fontSize:
+                          14, // Un poquito más grande para que sea fácil de tocar
                     ),
                   ),
                 ),
               ),
-              // -----------------------------------------------------
 
+              // -----------------------------------------------------
               const SizedBox(height: 32),
-              
+
               SizedBox(
-                width: double.infinity, height: 50,
+                width: double.infinity,
+                height: 50,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _signIn,
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0A7AFF), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-                  child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('Iniciar sesión', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0A7AFF),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          'Iniciar sesión',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(height: 40),
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                const Text('¿No tienes una cuenta? ', style: TextStyle(color: Colors.grey)),
-                GestureDetector(
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SignUpPage())),
-                  child: const Text('Regístrate', style: TextStyle(color: Color(0xFF0A7AFF), fontWeight: FontWeight.bold)),
-                ),
-              ]),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 6,
+                children: [
+                  const Text(
+                    '¿No tienes una cuenta? ',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const SignUpPage(),
+                      ),
+                    ),
+                    child: const Text(
+                      'Regístrate',
+                      style: TextStyle(
+                        color: Color(0xFF0A7AFF),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),

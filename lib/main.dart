@@ -19,7 +19,8 @@ Future<void> main() async {
   await Supabase.initialize(
     // Tus credenciales reales (Las mantengo igual)
     url: 'https://nvswszwballqzzuziwyx.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52c3dzendiYWxscXp6dXppd3l4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5MTIyNTUsImV4cCI6MjA3ODQ4ODI1NX0.OxfXYVGveWAlMxsSVB4MBIA-3TT_mKuXrCfOWkQs0AY',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52c3dzendiYWxscXp6dXppd3l4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5MTIyNTUsImV4cCI6MjA3ODQ4ODI1NX0.OxfXYVGveWAlMxsSVB4MBIA-3TT_mKuXrCfOWkQs0AY',
   );
 
   runApp(const MyApp());
@@ -49,7 +50,7 @@ class _MyAppState extends State<MyApp> {
     // Este es el "Oído Global". Escucha eventos siempre.
     supabase.auth.onAuthStateChange.listen((data) {
       final event = data.event;
-      
+
       // Si detectamos que el usuario viene de un link de recuperar contraseña:
       if (event == AuthChangeEvent.passwordRecovery) {
         // Usamos la llave global para forzar la navegación a la pantalla de nueva contraseña
@@ -75,7 +76,7 @@ class _MyAppState extends State<MyApp> {
         useMaterial3: true,
         scaffoldBackgroundColor: Colors.white,
         colorScheme: ColorScheme.fromSeed(seedColor: mubBlue, primary: mubBlue),
-        
+
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.white,
           elevation: 0,
@@ -102,7 +103,9 @@ class _MyAppState extends State<MyApp> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
-            minimumSize: const Size(double.infinity, 50),
+            // Avoid infinite width in global button theme; use 0 so
+            // buttons can expand when placed in bounded parents.
+            minimumSize: const Size(0, 50),
             textStyle: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -111,7 +114,9 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
       // Lógica de sesión inicial
-      home: supabase.auth.currentSession != null ? const HomePage() : const LoginPage(),
+      home: supabase.auth.currentSession != null
+          ? const HomePage()
+          : const LoginPage(),
     );
   }
 }
