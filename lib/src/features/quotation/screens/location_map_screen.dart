@@ -405,7 +405,7 @@ class _LocationMapScreenState extends State<LocationMapScreen> {
                     ),
                   ),
                   child: const Text(
-                    "Continuar al Pago",
+                    "Continuar",
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

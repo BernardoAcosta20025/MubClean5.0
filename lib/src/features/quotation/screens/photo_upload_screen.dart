@@ -47,6 +47,7 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
       }
     } catch (e) {
        debugPrint("Error al tomar foto: $e");
+       if (!mounted) return;
        ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("No se pudo abrir la cámara.")));
     }
@@ -110,9 +111,9 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
-                          border: Border.all(color: mubBlue.withOpacity(0.3), width: 4),
+                          border: Border.all(color: mubBlue.withAlpha(77), width: 4),
                           boxShadow: [
-                            BoxShadow(color: mubBlue.withOpacity(0.2), blurRadius: 20, spreadRadius: 5)
+                            BoxShadow(color: mubBlue.withAlpha(51), blurRadius: 20, spreadRadius: 5)
                           ]
                         ),
                         child: Column(
@@ -199,60 +200,51 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
             ),
           ),
 
-          // 4. BARRA INFERIOR (¡AQUÍ ESTÁ LA CORRECCIÓN!)
+          // 4. BARRA INFERIOR MODIFICADA (SIN PRECIO, SOLO BOTÓN)
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, -5))],
+              boxShadow: [BoxShadow(color: Colors.black.withAlpha(26), blurRadius: 20, offset: const Offset(0, -5))],
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text("Total Estimado:", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                      Text("\$${widget.itemsTotal.toStringAsFixed(2)}", style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87)),
-                    ],
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: canContinue ? () {
-                    // --- CORRECCIÓN VITAL PARA SUPABASE ---
-                    
-                    // 1. Convertimos las fotos a una lista de rutas (Strings)
-                    List<String> rutasDeFotos = _takenPhotos.map((foto) => foto.path).toList();
+            // Usamos SizedBox con width infinity para que el botón ocupe todo el ancho
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: canContinue ? () {
+                  // --- LÓGICA VITAL PARA GUARDAR FOTOS ---
+                  
+                  // 1. Convertimos las fotos a una lista de rutas (Strings)
+                  List<String> rutasDeFotos = _takenPhotos.map((foto) => foto.path).toList();
 
-                    // 2. Guardamos las fotos en el ÚLTIMO mueble añadido (o el actual)
-                    // Suponiendo que estamos editando el último de la lista:
-                    if (widget.furnitureItems.isNotEmpty) {
-                      // Accedemos al último elemento y le agregamos la clave 'photos'
-                      widget.furnitureItems.last['photos'] = rutasDeFotos;
-                    }
+                  // 2. Guardamos las fotos en el ÚLTIMO mueble añadido
+                  if (widget.furnitureItems.isNotEmpty) {
+                    widget.furnitureItems.last['photos'] = rutasDeFotos;
+                  }
 
-                    // 3. Pasamos la lista YA ACTUALIZADA al mapa
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => LocationMapScreen(
-                          selectedService: widget.selectedService,
-                          furnitureItems: widget.furnitureItems, // ¡Ahora sí lleva fotos!
-                          itemsTotal: widget.itemsTotal,
-                        ),
+                  // 3. Pasamos la lista YA ACTUALIZADA al mapa
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LocationMapScreen(
+                        selectedService: widget.selectedService,
+                        furnitureItems: widget.furnitureItems, 
+                        itemsTotal: widget.itemsTotal,
                       ),
-                    );
-                  } : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: mubBlue,
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    disabledBackgroundColor: Colors.grey.shade300,
-                  ),
-                  child: const Text("Continuar", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                    ),
+                  );
+                } : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: mubBlue,
+                  padding: const EdgeInsets.symmetric(vertical: 16), // Más alto para que se vea bien
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  disabledBackgroundColor: Colors.grey.shade300,
                 ),
-              ],
+                child: const Text(
+                  "Continuar", 
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)
+                ),
+              ),
             ),
           ),
         ],

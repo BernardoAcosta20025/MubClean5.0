@@ -10,18 +10,18 @@ class FurnitureDetailsScreen extends StatefulWidget {
 }
 
 class _FurnitureDetailsScreenState extends State<FurnitureDetailsScreen> {
-  // Lista de muebles ya configurados (Las tarjetas que se van apilando)
+  // Lista de muebles ya configurados
   final List<Map<String, dynamic>> _addedItems = [];
 
-  // --- Estado del Formulario (Lo que el usuario está editando ahora) ---
-  String? _currentType; // ✨ MODIFICADO: Ahora puede ser nulo al inicio para cargarlo dinámicamente
+  // --- Estado del Formulario ---
+  String? _currentType; 
   String _currentSize = 'Mediano';
   String _currentMaterial = 'Tela';
   String _currentDirtLevel = 'Medio';
   final List<String> _currentStains = [];
   int _quantity = 1;
 
-  // ✨ NUEVO: Mapa para filtrar tipos de muebles según el servicio
+  // Mapa para filtrar tipos de muebles
   final Map<String, List<String>> _furnitureOptionsByService = {
     'Limpieza de Sala': ['Sofá 2 plazas', 'Sofá 3 plazas', 'Sofá en L', 'Sillón Individual', 'Silla de Comedor', 'Puf', 'Love Seat'],
     'Limpieza de Alfombras': ['Alfombra de Área', 'Tapete Chico', 'Tapete Grande', 'Alfombra Fija (m2)', 'Tapete de Entrada'],
@@ -29,13 +29,12 @@ class _FurnitureDetailsScreenState extends State<FurnitureDetailsScreen> {
     'Limpieza General': ['Silla de Oficina', 'Cortinas', 'Interior de Auto', 'Carriola de Bebé', 'Mueble Genérico'],
   };
 
-  // ✨ NUEVO: Getter para obtener la lista filtrada
   List<String> get _currentFurnitureTypes {
     return _furnitureOptionsByService[widget.selectedService] ?? 
            ['Mueble Genérico', 'Otro'];
   }
 
-  // Datos Base (Precios actualizados para cubrir las nuevas opciones)
+  // Precios Base (Se mantienen internamente como referencia, aunque no se muestren)
   final Map<String, double> _basePrices = {
     'Sofá 2 plazas': 600.0, 'Sofá 3 plazas': 850.0, 'Sofá en L': 1200.0, 'Sillón Individual': 350.0,
     'Alfombra de Área': 400.0, 'Tapete Chico': 200.0, 'Alfombra Fija (m2)': 80.0,
@@ -50,7 +49,6 @@ class _FurnitureDetailsScreenState extends State<FurnitureDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    // ✨ MODIFICADO: Inicializar el tipo con el primero de la lista FILTRADA
     if (_currentFurnitureTypes.isNotEmpty) {
       _currentType = _currentFurnitureTypes.first;
     } else {
@@ -58,11 +56,9 @@ class _FurnitureDetailsScreenState extends State<FurnitureDetailsScreen> {
     }
   }
 
-  // Cálculo de precio (Lógica interna)
+  // Cálculo de precio interno (Para guardar en BD, aunque no se muestre al usuario)
   double get _currentItemPrice {
-    // Busca precio base o usa 300 por defecto
     double base = _basePrices[_currentType] ?? 300.0;
-    
     if (_currentSize == 'Grande') base += 100;
     if (_currentDirtLevel == 'Alto') base += 100;
     return base * _quantity;
@@ -73,7 +69,7 @@ class _FurnitureDetailsScreenState extends State<FurnitureDetailsScreen> {
   }
 
   void _addItemToOrder() {
-    if (_currentType == null) return; // Seguridad
+    if (_currentType == null) return; 
 
     setState(() {
       _addedItems.add({
@@ -85,7 +81,7 @@ class _FurnitureDetailsScreenState extends State<FurnitureDetailsScreen> {
         'quantity': _quantity,
         'price': _currentItemPrice,
       });
-      // Reseteamos el formulario
+      // Reseteamos
       _quantity = 1;
       _currentStains.clear();
     });
@@ -106,7 +102,7 @@ class _FurnitureDetailsScreenState extends State<FurnitureDetailsScreen> {
       ),
       body: Column(
         children: [
-          // Área de Scroll (Lista de items + Formulario)
+          // Área de Scroll
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -129,16 +125,15 @@ class _FurnitureDetailsScreenState extends State<FurnitureDetailsScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Encabezado de la tarjeta
+                              // Encabezado
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  // ✨ MODIFICADO: Flexible + Overflow para el título
                                   Flexible(
                                     child: Text(
                                       "${item['quantity']}x ${item['type']}", 
                                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                      overflow: TextOverflow.ellipsis, // Corta con "..."
+                                      overflow: TextOverflow.ellipsis,
                                       maxLines: 1,
                                     ),
                                   ),
@@ -152,8 +147,7 @@ class _FurnitureDetailsScreenState extends State<FurnitureDetailsScreen> {
                               ),
                               const Divider(),
                               
-                              // Detalles del ítem
-                              // ✨ MODIFICADO: Overflow para los detalles
+                              // Detalles (Sin Precio)
                               Text("Tamaño: ${item['size']}", overflow: TextOverflow.ellipsis),
                               Text("Material: ${item['material']}", overflow: TextOverflow.ellipsis),
                               Text("Suciedad: ${item['dirt']}", overflow: TextOverflow.ellipsis),
@@ -162,12 +156,9 @@ class _FurnitureDetailsScreenState extends State<FurnitureDetailsScreen> {
                                 Text(
                                   "Manchas: ${(item['stains'] as List).join(', ')}", 
                                   style: const TextStyle(color: Colors.grey),
-                                  overflow: TextOverflow.ellipsis, // Corta lista larga de manchas
+                                  overflow: TextOverflow.ellipsis, 
                                   maxLines: 2,
                                 ),
-                              
-                              const SizedBox(height: 5),
-                              Text("\$${item['price'].toStringAsFixed(0)}", style: TextStyle(color: mubBlue, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
@@ -181,7 +172,7 @@ class _FurnitureDetailsScreenState extends State<FurnitureDetailsScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15)],
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 15)],
                     ),
                     padding: const EdgeInsets.all(24),
                     child: Column(
@@ -193,16 +184,12 @@ class _FurnitureDetailsScreenState extends State<FurnitureDetailsScreen> {
                         // TIPO DE MUEBLE
                         _buildLabel("Tipo de Mueble"),
                         DropdownButtonFormField<String>(
-                          value: _currentType,
+                          value: _currentType, // Corregido: value en vez de initialValue para actualizarse dinámicamente
                           isExpanded: true,
                           decoration: _inputDecoration(),
-                          // ✨ MODIFICADO: Usamos _currentFurnitureTypes (la lista filtrada)
                           items: _currentFurnitureTypes.map((t) => DropdownMenuItem(
                             value: t, 
-                            child: Text(
-                              t, 
-                              overflow: TextOverflow.ellipsis // Protege el dropdown también
-                            )
+                            child: Text(t, overflow: TextOverflow.ellipsis)
                           )).toList(),
                           onChanged: (v) => setState(() => _currentType = v!),
                         ),
@@ -298,7 +285,7 @@ class _FurnitureDetailsScreenState extends State<FurnitureDetailsScreen> {
                                   padding: const EdgeInsets.symmetric(vertical: 14),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                 ),
-                                child: const Text("+ Agregar otro mueble", textAlign: TextAlign.center),
+                                child: const Text("+ Agregar a la lista", textAlign: TextAlign.center), // Texto más claro
                               ),
                             ),
                           ],
@@ -307,51 +294,42 @@ class _FurnitureDetailsScreenState extends State<FurnitureDetailsScreen> {
                     ),
                   ),
                   
-                  const SizedBox(height: 20), // Espacio extra abajo
+                  const SizedBox(height: 20), 
                 ],
               ),
             ),
           ),
 
-          // FOOTER FIJO
+          // FOOTER MODIFICADO (SIN PRECIO, BOTÓN FULL WIDTH)
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
-              boxShadow: [BoxShadow(blurRadius: 10, color: Colors.black12)],
+              boxShadow: [BoxShadow(blurRadius: 10, color: Colors.black.withValues(alpha: 0.1))],
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text("Total Estimado:", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                    Text("\$${_totalCartPrice.toStringAsFixed(2)}", style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                ElevatedButton(
-                  onPressed: _addedItems.isEmpty ? null : () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PhotoUploadScreen(
-                          selectedService: widget.selectedService,
-                          furnitureItems: _addedItems,
-                          itemsTotal: _totalCartPrice,
-                        ),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _addedItems.isEmpty ? null : () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PhotoUploadScreen(
+                        selectedService: widget.selectedService,
+                        furnitureItems: _addedItems,
+                        itemsTotal: _totalCartPrice, // Se pasa el total interno, pero no se muestra
                       ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: mubBlue,
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  child: const Text("Continuar", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: mubBlue,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  disabledBackgroundColor: Colors.grey.shade300,
                 ),
-              ],
+                child: const Text("Continuar", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              ),
             ),
           ),
         ],

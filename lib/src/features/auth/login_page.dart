@@ -36,6 +36,7 @@ class _LoginPageState extends State<LoginPage> {
 
       // SI EL EVENTO ES RECUPERACIÓN DE CONTRASEÑA...
       if (event == AuthChangeEvent.passwordRecovery) {
+        if (!mounted) return;
         // ... NAVEGAMOS A LA PANTALLA DE CAMBIAR CONTRASEÑA
         Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => const UpdatePasswordPage()),
@@ -115,8 +116,9 @@ class _LoginPageState extends State<LoginPage> {
         );
         if (mounted) context.showSnackBar('¡Link enviado! Revisa tu correo.');
       } catch (error) {
-        if (mounted)
+        if (mounted) {
           context.showSnackBar('Error al enviar correo', isError: true);
+        }
       }
     }
   }

@@ -5,9 +5,10 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:mubclean/main.dart'; // Cliente de Supabase global
 import 'package:mubclean/src/features/home/widgets/home_widgets.dart';
 import 'package:mubclean/src/features/home/profile_tab.dart';
-import 'package:mubclean/src/features/history/history_page.dart'; // NECESARIO
-// ✨ 1. IMPORTAMOS EL NUEVO FLUJO (Paso 1)
+import 'package:mubclean/src/features/history/history_page.dart'; 
 import 'package:mubclean/src/features/quotation/screens/service_selection_screen.dart';
+// ✨ 1. IMPORTAMOS LA PANTALLA DE NOTIFICACIONES
+import 'package:mubclean/src/features/home/notifications_screen.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -25,7 +26,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadUserName();
-    _loadLogoAsset(); // Cargar logo al iniciar
+    _loadLogoAsset(); 
   }
 
   Future<void> _loadUserName() async {
@@ -50,7 +51,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Cargar el logo de la empresa como asset de imagen
   Future<void> _loadLogoAsset() async {
     try {
       final ByteData data = await rootBundle.load('assets/image/Logo.png');
@@ -77,7 +77,6 @@ class _HomePageState extends State<HomePage> {
       appBar: _selectedIndex != 0
           ? null
           : AppBar(
-              // Solo muestra AppBar en Inicio
               backgroundColor: const Color(0xFFF5F5F7),
               elevation: 0,
               toolbarHeight: 80,
@@ -117,8 +116,16 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
               actions: [
+                // ✨ 2. BOTÓN DE NOTIFICACIONES CONECTADO
                 IconButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const NotificationsScreen(),
+                      ),
+                    );
+                  },
                   icon: const Icon(
                     Icons.notifications_none_rounded,
                     color: Colors.black87,
@@ -129,7 +136,7 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
 
-      body: _getSelectedView(), // Aquí se decide qué pantalla mostrar
+      body: _getSelectedView(), 
 
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.white,
@@ -152,14 +159,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // --- LÓGICA DE NAVEGACIÓN PRINCIPAL ---
-
   Widget _getSelectedView() {
     switch (_selectedIndex) {
       case 0:
         return HomeContent(logoImage: _logoImage);
       case 1:
-        // LLAMADA FINAL Y CORREGIDA: Sin 'const'
         return const HistoryPage();
       case 2:
         return const ProfileTab();
@@ -220,13 +224,10 @@ class HomeContent extends StatelessWidget {
         ),
         const SizedBox(height: 25),
 
-        // ✨ 2. BOTÓN COTIZAR CONECTADO
-        // Reemplazamos CotizarServicioButton por un ElevatedButton directo con navegación
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
             onPressed: () {
-              // Navegamos al paso 1 del nuevo flujo
               Navigator.push(
                 context,
                 MaterialPageRoute(
