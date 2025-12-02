@@ -19,10 +19,14 @@ class BookingConfirmedScreen extends StatelessWidget {
                 color: Colors.orange.shade50,
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.access_time_filled, size: 80, color: Colors.orange.shade400),
+              child: Icon(
+                Icons.access_time_filled,
+                size: 80,
+                color: Colors.orange.shade400,
+              ),
             ),
             const SizedBox(height: 30),
-            
+
             // Texto Principal
             const Text(
               "Confirmación en Espera",
@@ -34,16 +38,16 @@ class BookingConfirmedScreen extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            
+
             // Texto Explicativo (Lo que pediste)
             const Text(
               "Se le será notificado cuando el encargado cotice la información y se lo mande en la campana de notificaciones.",
               style: TextStyle(fontSize: 16, color: Colors.grey, height: 1.5),
               textAlign: TextAlign.center,
             ),
-            
+
             const SizedBox(height: 50),
-            
+
             // Botón Volver
             SizedBox(
               width: double.infinity,
@@ -55,11 +59,17 @@ class BookingConfirmedScreen extends StatelessWidget {
                 },
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Color(0xFF0A7AFF)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: const Text(
                   "Volver al Inicio",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0A7AFF)),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0A7AFF),
+                  ),
                 ),
               ),
             ),

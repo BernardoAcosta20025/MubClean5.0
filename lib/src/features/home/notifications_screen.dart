@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:mubclean/src/features/quotation/screens/quote_summary_screen.dart';
 import 'package:mubclean/src/features/home/home_page.dart';
+
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
 
@@ -18,7 +19,7 @@ class NotificationsScreen extends StatelessWidget {
         foregroundColor: Colors.black,
         elevation: 0,
       ),
-      body: userId == null 
+      body: userId == null
           ? const Center(child: Text("Inicia sesión para ver notificaciones"))
           : StreamBuilder<List<Map<String, dynamic>>>(
               stream: supabase
@@ -27,8 +28,10 @@ class NotificationsScreen extends StatelessWidget {
                   .eq('user_id', userId)
                   .order('created_at', ascending: false),
               builder: (context, snapshot) {
-                if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
-                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                if (snapshot.hasError)
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                if (!snapshot.hasData)
+                  return const Center(child: CircularProgressIndicator());
 
                 final notifications = snapshot.data!;
 
@@ -37,7 +40,11 @@ class NotificationsScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.notifications_off_outlined, size: 60, color: Colors.grey),
+                        Icon(
+                          Icons.notifications_off_outlined,
+                          size: 60,
+                          color: Colors.grey,
+                        ),
                         SizedBox(height: 10),
                         Text("No tienes notificaciones aún"),
                       ],
@@ -50,26 +57,43 @@ class NotificationsScreen extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final notif = notifications[index];
                     final date = DateTime.parse(notif['created_at']);
-                    final formattedDate = DateFormat('dd/MM/yyyy HH:mm').format(date);
+                    final formattedDate = DateFormat(
+                      'dd/MM/yyyy HH:mm',
+                    ).format(date);
 
                     return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       child: ListTile(
                         leading: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: Colors.blue.shade50,
-                            shape: BoxShape.circle
+                            shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.receipt_long, color: Color(0xFF0A7AFF)),
+                          child: const Icon(
+                            Icons.receipt_long,
+                            color: Color(0xFF0A7AFF),
+                          ),
                         ),
-                        title: Text(notif['title'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                        title: Text(
+                          notif['title'],
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(notif['body']),
                             const SizedBox(height: 5),
-                            Text(formattedDate, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                            Text(
+                              formattedDate,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
                           ],
                         ),
                         onTap: () {

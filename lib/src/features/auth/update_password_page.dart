@@ -14,9 +14,14 @@ class _UpdatePasswordPageState extends State<UpdatePasswordPage> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
 
- Future<void> _updatePassword() async {
-    if (_passwordController.text.isEmpty || _passwordController.text.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("La contraseña debe tener al menos 6 caracteres")));
+  Future<void> _updatePassword() async {
+    if (_passwordController.text.isEmpty ||
+        _passwordController.text.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("La contraseña debe tener al menos 6 caracteres"),
+        ),
+      );
       return;
     }
 
@@ -34,23 +39,32 @@ class _UpdatePasswordPageState extends State<UpdatePasswordPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("¡Contraseña actualizada! Por favor inicia sesión de nuevo."),
+            content: Text(
+              "¡Contraseña actualizada! Por favor inicia sesión de nuevo.",
+            ),
             backgroundColor: Colors.green,
             duration: Duration(seconds: 4),
-          )
+          ),
         );
-        
+
         // 3. Redirigimos forzosamente al Login (quitando todas las pantallas anteriores)
         // Nota: Al hacer signOut, el AuthGate de main.dart también detectará el cambio,
         // pero esta navegación asegura que la experiencia sea fluida.
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const LoginPage()), // Asume que tienes importado LoginPage
+          MaterialPageRoute(
+            builder: (context) => const LoginPage(),
+          ), // Asume que tienes importado LoginPage
           (route) => false,
         );
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Error al actualizar contraseña"), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Error al actualizar contraseña"),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -66,7 +80,10 @@ class _UpdatePasswordPageState extends State<UpdatePasswordPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text("Ingresa tu nueva contraseña", style: TextStyle(fontSize: 18)),
+            const Text(
+              "Ingresa tu nueva contraseña",
+              style: TextStyle(fontSize: 18),
+            ),
             const SizedBox(height: 20),
             TextFormField(
               controller: _passwordController,
@@ -86,9 +103,9 @@ class _UpdatePasswordPageState extends State<UpdatePasswordPage> {
                   backgroundColor: const Color(0xFF0A7AFF),
                   foregroundColor: Colors.white,
                 ),
-                child: _isLoading 
-                  ? const CircularProgressIndicator(color: Colors.white) 
-                  : const Text("Guardar Nueva Contraseña"),
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text("Guardar Nueva Contraseña"),
               ),
             ),
           ],

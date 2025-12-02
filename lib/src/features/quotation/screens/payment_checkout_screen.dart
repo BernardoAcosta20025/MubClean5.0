@@ -9,7 +9,7 @@ class PaymentCheckoutScreen extends StatefulWidget {
   final List<Map<String, dynamic>> furnitureItems;
   final String address;
   final String receiverName;
-  final double totalToPay; 
+  final double totalToPay;
   final DateTime serviceDate;
   final String serviceTime;
 
@@ -48,18 +48,24 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
 
     try {
       // 1. GUARDAR LA SOLICITUD
-      final bookingResponse = await supabase.from('bookings').insert({
-        'user_id': user.id,
-        'status': 'pending_quote',
-        'payment_status': 'unpaid',
-        'total_price': widget.totalToPay,
-        'payment_method': null,
-        'transaction_id': null,
-        'scheduled_date': widget.serviceDate.toIso8601String().split('T')[0],
-        'scheduled_time': widget.serviceTime,
-        'address_street': widget.address,
-        'receiver_name': widget.receiverName,
-      }).select().single();
+      final bookingResponse = await supabase
+          .from('bookings')
+          .insert({
+            'user_id': user.id,
+            'status': 'pending_quote',
+            'payment_status': 'unpaid',
+            'total_price': widget.totalToPay,
+            'payment_method': null,
+            'transaction_id': null,
+            'scheduled_date': widget.serviceDate.toIso8601String().split(
+              'T',
+            )[0],
+            'scheduled_time': widget.serviceTime,
+            'address_street': widget.address,
+            'receiver_name': widget.receiverName,
+          })
+          .select()
+          .single();
 
       final bookingId = bookingResponse['id'];
 
@@ -75,27 +81,35 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
           'unit_price': mueble['price'] ?? 0,
           'attributes': {
             'size': mueble['size'],
-            'material': mueble['material'], 
-            'dirt_level': mueble['dirt_level']
+            'material': mueble['material'],
+            'dirt_level': mueble['dirt_level'],
           },
-          'stains': mueble['stains'] ?? [], 
+          'stains': mueble['stains'] ?? [],
         });
 
         if (mueble['photos'] != null && (mueble['photos'] as List).isNotEmpty) {
-          List<String> rutasFotos = mueble['photos']; 
-          
+          List<String> rutasFotos = mueble['photos'];
+
           for (String rutaLocal in rutasFotos) {
             final file = File(rutaLocal);
             final fileExt = rutaLocal.split('.').last;
-            final fileName = '${user.id}/${DateTime.now().millisecondsSinceEpoch}_${itemsParaInsertar.length}.$fileExt';
+            final fileName =
+                '${user.id}/${DateTime.now().millisecondsSinceEpoch}_${itemsParaInsertar.length}.$fileExt';
 
-            await supabase.storage.from('evidence').upload(
-              fileName,
-              file,
-              fileOptions: const FileOptions(cacheControl: '3600', upsert: false),
-            );
+            await supabase.storage
+                .from('evidence')
+                .upload(
+                  fileName,
+                  file,
+                  fileOptions: const FileOptions(
+                    cacheControl: '3600',
+                    upsert: false,
+                  ),
+                );
 
-            final imageUrl = supabase.storage.from('evidence').getPublicUrl(fileName);
+            final imageUrl = supabase.storage
+                .from('evidence')
+                .getPublicUrl(fileName);
 
             evidenciasParaInsertar.add({
               'booking_id': bookingId,
@@ -118,18 +132,22 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => const BookingConfirmedScreen()),
+          MaterialPageRoute(
+            builder: (context) => const BookingConfirmedScreen(),
+          ),
           // ✨ AQUÍ ESTÁ EL CAMBIO IMPORTANTE:
           // Usamos 'route.isFirst' para NO borrar la pantalla de Inicio (Home)
-          (route) => route.isFirst, 
+          (route) => route.isFirst,
         );
       }
-
     } catch (e) {
       print("Error: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error al solicitar: $e"), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text("Error al solicitar: $e"),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -163,20 +181,36 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
               child: Card(
                 elevation: 4,
                 color: Colors.blue[50],
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: ListView(
                     children: [
-                      _rowInfo(Icons.cleaning_services, "Servicio", widget.selectedService),
+                      _rowInfo(
+                        Icons.cleaning_services,
+                        "Servicio",
+                        widget.selectedService,
+                      ),
                       const SizedBox(height: 10),
-                      _rowInfo(Icons.calendar_month, "Fecha Solicitada", "$dateStr\n${widget.serviceTime}"),
+                      _rowInfo(
+                        Icons.calendar_month,
+                        "Fecha Solicitada",
+                        "$dateStr\n${widget.serviceTime}",
+                      ),
                       const SizedBox(height: 10),
                       _rowInfo(Icons.location_on, "Dirección", widget.address),
                       const SizedBox(height: 10),
                       _rowInfo(Icons.person, "Recibe", widget.receiverName),
                       const Divider(height: 30, thickness: 1),
-                      const Text("Detalle de Muebles:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      const Text(
+                        "Detalle de Muebles:",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
                       const SizedBox(height: 10),
                       ...widget.furnitureItems.map(
                         (i) => Padding(
@@ -192,7 +226,7 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 20),
 
             SizedBox(
@@ -202,15 +236,21 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
                 onPressed: _isLoading ? null : _solicitarCotizacion,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0A7AFF),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   elevation: 5,
                 ),
-                child: _isLoading 
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text(
-                      "Enviar Solicitud de Cotización", 
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                        "Enviar Solicitud de Cotización",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
             ),
           ],
@@ -229,8 +269,18 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black54)),
-              Text(value, style: const TextStyle(fontSize: 16, color: Colors.black87)),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Colors.black54,
+                ),
+              ),
+              Text(
+                value,
+                style: const TextStyle(fontSize: 16, color: Colors.black87),
+              ),
             ],
           ),
         ),

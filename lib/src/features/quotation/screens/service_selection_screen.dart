@@ -32,7 +32,10 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-            const Text('Paso 1 de 5', style: TextStyle(fontSize: 16, color: Colors.grey)),
+            const Text(
+              'Paso 1 de 5',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
             const SizedBox(height: 20),
             Expanded(
               child: ListView(
@@ -73,18 +76,26 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => FurnitureDetailsScreen(selectedService: _selectedService!),
+                            builder: (context) => FurnitureDetailsScreen(
+                              selectedService: _selectedService!,
+                            ),
                           ),
                         );
                       },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0A7AFF),
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 child: const Text(
                   'Continuar',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -94,7 +105,11 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
     );
   }
 
-  Widget _buildServiceCard({required String serviceName, required String description, required IconData icon}) {
+  Widget _buildServiceCard({
+    required String serviceName,
+    required String description,
+    required IconData icon,
+  }) {
     final bool isSelected = _selectedService == serviceName;
     return GestureDetector(
       onTap: () => setState(() => _selectedService = serviceName),
@@ -110,7 +125,11 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
         ),
         child: Row(
           children: [
-            Icon(icon, size: 32, color: isSelected ? const Color(0xFF0A7AFF) : Colors.grey[600]),
+            Icon(
+              icon,
+              size: 32,
+              color: isSelected ? const Color(0xFF0A7AFF) : Colors.grey[600],
+            ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -121,7 +140,9 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: isSelected ? const Color(0xFF0A7AFF) : Colors.black87,
+                      color: isSelected
+                          ? const Color(0xFF0A7AFF)
+                          : Colors.black87,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -133,7 +154,11 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
               ),
             ),
             if (isSelected)
-              const Icon(Icons.check_circle, color: Color(0xFF0A7AFF), size: 24),
+              const Icon(
+                Icons.check_circle,
+                color: Color(0xFF0A7AFF),
+                size: 24,
+              ),
           ],
         ),
       ),

@@ -1,7 +1,7 @@
 class Quotation {
   final String selectedService;
   // Ahora guardamos una lista de configuraciones complejas
-  final List<Map<String, dynamic>> furnitureItems; 
+  final List<Map<String, dynamic>> furnitureItems;
   // Ej: [{'type': 'Sofá', 'size': 'Grande', 'material': 'Tela', 'dirt': 'Alto', 'price': 500}]
 
   final String address;

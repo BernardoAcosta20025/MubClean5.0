@@ -5,7 +5,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:mubclean/main.dart'; // Cliente de Supabase global
 import 'package:mubclean/src/features/home/widgets/home_widgets.dart';
 import 'package:mubclean/src/features/home/profile_tab.dart';
-import 'package:mubclean/src/features/history/history_page.dart'; 
+import 'package:mubclean/src/features/history/history_page.dart';
 import 'package:mubclean/src/features/quotation/screens/service_selection_screen.dart';
 // ✨ 1. IMPORTAMOS LA PANTALLA DE NOTIFICACIONES
 import 'package:mubclean/src/features/home/notifications_screen.dart';
@@ -26,7 +26,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadUserName();
-    _loadLogoAsset(); 
+    _loadLogoAsset();
   }
 
   Future<void> _loadUserName() async {
@@ -136,7 +136,7 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
 
-      body: _getSelectedView(), 
+      body: _getSelectedView(),
 
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.white,

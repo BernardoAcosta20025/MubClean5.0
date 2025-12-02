@@ -21,7 +21,8 @@ class EditProfilePage extends StatefulWidget {
 class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
-  late TextEditingController _emailController; // Para mostrar, aunque no se edita
+  late TextEditingController
+  _emailController; // Para mostrar, aunque no se edita
   bool _isLoading = false;
 
   @override
@@ -40,23 +41,29 @@ class _EditProfilePageState extends State<EditProfilePage> {
       final userId = supabase.auth.currentUser!.id;
 
       // Enviamos SOLO los cambios de nombre y teléfono a Supabase
-      await supabase.from('profiles').update({
-        'full_name': _nameController.text.trim(),
-        'phone': _phoneController.text.trim(),
-        'updated_at': DateTime.now().toIso8601String(),
-      }).eq('id', userId);
+      await supabase
+          .from('profiles')
+          .update({
+            'full_name': _nameController.text.trim(),
+            'phone': _phoneController.text.trim(),
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', userId);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Perfil actualizado correctamente')),
         );
         // Regresamos 'true' para indicar que hubo cambios y que la página anterior debe refrescarse
-        Navigator.pop(context, true); 
+        Navigator.pop(context, true);
       }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al actualizar: $error'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error al actualizar: $error'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -67,17 +74,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Editar Perfil"),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text("Editar Perfil"), centerTitle: true),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Campo NO editable (Email)
-            const Text("Email (No editable)", style: TextStyle(color: Colors.grey, fontSize: 12)),
+            const Text(
+              "Email (No editable)",
+              style: TextStyle(color: Colors.grey, fontSize: 12),
+            ),
             const SizedBox(height: 5),
             TextField(
               controller: _emailController,
@@ -87,9 +94,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 prefixIcon: Icon(Icons.email),
               ),
             ),
-            
+
             const SizedBox(height: 30),
-            
+
             // Campo Nombre
             const Text("Nombre Completo"),
             const SizedBox(height: 5),
@@ -102,7 +109,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               ),
             ),
             const SizedBox(height: 20),
-            
+
             // Campo Teléfono
             const Text("Teléfono"),
             const SizedBox(height: 5),
@@ -115,9 +122,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 prefixIcon: Icon(Icons.phone),
               ),
             ),
-            
+
             const SizedBox(height: 40),
-            
+
             // Botón Guardar
             SizedBox(
               width: double.infinity,
@@ -130,7 +137,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 ),
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text("Guardar Cambios", style: TextStyle(fontSize: 16)),
+                    : const Text(
+                        "Guardar Cambios",
+                        style: TextStyle(fontSize: 16),
+                      ),
               ),
             ),
           ],

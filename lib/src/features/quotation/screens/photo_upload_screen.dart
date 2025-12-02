@@ -1,6 +1,6 @@
 import 'dart:io'; // Necesario para manejar los archivos de las fotos
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart'; 
+import 'package:image_picker/image_picker.dart';
 import 'package:mubclean/src/features/quotation/screens/location_map_screen.dart';
 
 class PhotoUploadScreen extends StatefulWidget {
@@ -24,13 +24,14 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
   // Lista para guardar las fotos tomadas
   final List<XFile> _takenPhotos = [];
   final ImagePicker _picker = ImagePicker();
-  final int _maxPhotos = 5; 
+  final int _maxPhotos = 5;
 
   // Función para abrir la cámara
   Future<void> _takePhoto() async {
     if (_takenPhotos.length >= _maxPhotos) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Ya has tomado el máximo de 5 fotos.")));
+        const SnackBar(content: Text("Ya has tomado el máximo de 5 fotos.")),
+      );
       return;
     }
 
@@ -46,10 +47,11 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
         });
       }
     } catch (e) {
-       debugPrint("Error al tomar foto: $e");
-       if (!mounted) return;
-       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("No se pudo abrir la cámara.")));
+      debugPrint("Error al tomar foto: $e");
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("No se pudo abrir la cámara.")),
+      );
     }
   }
 
@@ -83,17 +85,31 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
                 children: [
                   const Text(
                     "Evidencia Fotográfica del Mueble",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   RichText(
                     text: TextSpan(
-                      style: TextStyle(fontSize: 15, color: Colors.grey[700], height: 1.5),
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey[700],
+                        height: 1.5,
+                      ),
                       children: const [
-                        TextSpan(text: "Las fotos nos permiten evaluar con precisión el estado de tu mueble.\n\n"),
+                        TextSpan(
+                          text:
+                              "Las fotos nos permiten evaluar con precisión el estado de tu mueble.\n\n",
+                        ),
                         TextSpan(
                           text: "📸 Recomendación: ",
-                          style: TextStyle(fontWeight: FontWeight.bold, color: mubBlue),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: mubBlue,
+                          ),
                         ),
                         TextSpan(text: "Toma fotos de la zona más afectada."),
                       ],
@@ -111,10 +127,17 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
-                          border: Border.all(color: mubBlue.withAlpha(77), width: 4),
+                          border: Border.all(
+                            color: mubBlue.withAlpha(77),
+                            width: 4,
+                          ),
                           boxShadow: [
-                            BoxShadow(color: mubBlue.withAlpha(51), blurRadius: 20, spreadRadius: 5)
-                          ]
+                            BoxShadow(
+                              color: mubBlue.withAlpha(51),
+                              blurRadius: 20,
+                              spreadRadius: 5,
+                            ),
+                          ],
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -125,13 +148,21 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
                                 color: mubBlue,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.camera_alt, size: 40, color: Colors.white),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                size: 40,
+                                color: Colors.white,
+                              ),
                             ),
                             const SizedBox(height: 10),
                             Text(
                               "Abrir Cámara",
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: mubBlue),
-                            )
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: mubBlue,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -143,7 +174,10 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
                   // 3. CARRUSEL DE FOTOS
                   Text(
                     "Fotos tomadas: ${_takenPhotos.length}/$_maxPhotos (Mínimo 1 requerida)",
-                    style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      color: Colors.grey[700],
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   SizedBox(
@@ -151,7 +185,8 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: _maxPhotos,
-                      separatorBuilder: (context, index) => const SizedBox(width: 12),
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(width: 12),
                       itemBuilder: (context, index) {
                         if (index < _takenPhotos.length) {
                           return Stack(
@@ -172,11 +207,18 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
                                   onTap: () => _removePhoto(index),
                                   child: Container(
                                     padding: const EdgeInsets.all(4),
-                                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                                    child: const Icon(Icons.close, size: 14, color: Colors.white),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.close,
+                                      size: 14,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ),
-                              )
+                              ),
                             ],
                           );
                         } else {
@@ -188,7 +230,12 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: Colors.grey.shade300),
                             ),
-                            child: Center(child: Icon(Icons.add_a_photo, color: Colors.grey[400])),
+                            child: Center(
+                              child: Icon(
+                                Icons.add_a_photo,
+                                color: Colors.grey[400],
+                              ),
+                            ),
                           );
                         }
                       },
@@ -205,44 +252,62 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
-              boxShadow: [BoxShadow(color: Colors.black.withAlpha(26), blurRadius: 20, offset: const Offset(0, -5))],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withAlpha(26),
+                  blurRadius: 20,
+                  offset: const Offset(0, -5),
+                ),
+              ],
             ),
             // Usamos SizedBox con width infinity para que el botón ocupe todo el ancho
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: canContinue ? () {
-                  // --- LÓGICA VITAL PARA GUARDAR FOTOS ---
-                  
-                  // 1. Convertimos las fotos a una lista de rutas (Strings)
-                  List<String> rutasDeFotos = _takenPhotos.map((foto) => foto.path).toList();
+                onPressed: canContinue
+                    ? () {
+                        // --- LÓGICA VITAL PARA GUARDAR FOTOS ---
 
-                  // 2. Guardamos las fotos en el ÚLTIMO mueble añadido
-                  if (widget.furnitureItems.isNotEmpty) {
-                    widget.furnitureItems.last['photos'] = rutasDeFotos;
-                  }
+                        // 1. Convertimos las fotos a una lista de rutas (Strings)
+                        List<String> rutasDeFotos = _takenPhotos
+                            .map((foto) => foto.path)
+                            .toList();
 
-                  // 3. Pasamos la lista YA ACTUALIZADA al mapa
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => LocationMapScreen(
-                        selectedService: widget.selectedService,
-                        furnitureItems: widget.furnitureItems, 
-                        itemsTotal: widget.itemsTotal,
-                      ),
-                    ),
-                  );
-                } : null,
+                        // 2. Guardamos las fotos en el ÚLTIMO mueble añadido
+                        if (widget.furnitureItems.isNotEmpty) {
+                          widget.furnitureItems.last['photos'] = rutasDeFotos;
+                        }
+
+                        // 3. Pasamos la lista YA ACTUALIZADA al mapa
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LocationMapScreen(
+                              selectedService: widget.selectedService,
+                              furnitureItems: widget.furnitureItems,
+                              itemsTotal: widget.itemsTotal,
+                            ),
+                          ),
+                        );
+                      }
+                    : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: mubBlue,
-                  padding: const EdgeInsets.symmetric(vertical: 16), // Más alto para que se vea bien
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 16,
+                  ), // Más alto para que se vea bien
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   disabledBackgroundColor: Colors.grey.shade300,
                 ),
                 child: const Text(
-                  "Continuar", 
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)
+                  "Continuar",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),

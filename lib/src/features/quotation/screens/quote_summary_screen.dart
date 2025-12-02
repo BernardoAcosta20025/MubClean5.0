@@ -39,7 +39,9 @@ class _QuoteSummaryScreenState extends State<QuoteSummaryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        if (_isLoading) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
 
     final total = _bookingData?['total_price'] ?? 0.0;
     final items = _bookingData?['booking_items'] as List<dynamic>;
@@ -54,25 +56,58 @@ class _QuoteSummaryScreenState extends State<QuoteSummaryScreen> {
               child: Card(
                 elevation: 4,
                 color: Colors.blue[50],
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: ListView(
                     children: [
-                      const Text("Detalle del Servicio", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      const Text(
+                        "Detalle del Servicio",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const Divider(),
                       _infoRow("Fecha:", "${_bookingData?['scheduled_date']}"),
                       _infoRow("Hora:", "${_bookingData?['scheduled_time']}"),
-                      _infoRow("Dirección:", "${_bookingData?['address_street']}"),
+                      _infoRow(
+                        "Dirección:",
+                        "${_bookingData?['address_street']}",
+                      ),
                       const SizedBox(height: 20),
-                      const Text("Muebles:", style: TextStyle(fontWeight: FontWeight.bold)),
-                      ...items.map((i) => Text("• ${i['quantity']}x ${i['item_name']} (${i['attributes']['size']})")),
+                      const Text(
+                        "Muebles:",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      ...items.map(
+                        (i) => Text(
+                          "• ${i['quantity']}x ${i['item_name']} (${i['attributes']['size']})",
+                        ),
+                      ),
                       const Divider(height: 40, thickness: 2),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text("Total a Pagar:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                          Text("\$$total", style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF0A7AFF))),
+                          const Text(
+                            "Total a Pagar:",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Flexible(
+                            child: Text(
+                              "\$$total",
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0A7AFF),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -99,9 +134,18 @@ class _QuoteSummaryScreenState extends State<QuoteSummaryScreen> {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0A7AFF),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                child: const Text("Continuar al Pago", style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
+                child: const Text(
+                  "Continuar al Pago",
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           ],

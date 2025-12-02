@@ -10,7 +10,10 @@ class HistoryPage extends StatelessWidget {
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F5F7),
         appBar: AppBar(
-          title: const Text("Mis Servicios", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+          title: const Text(
+            "Mis Servicios",
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+          ),
           centerTitle: true,
           backgroundColor: Colors.white,
           elevation: 0,
@@ -27,10 +30,7 @@ class HistoryPage extends StatelessWidget {
           ),
         ),
         body: TabBarView(
-          children: [
-            _buildActiveServices(),
-            _buildPastServices(),
-          ],
+          children: [_buildActiveServices(), _buildPastServices()],
         ),
       ),
     );
@@ -38,8 +38,16 @@ class HistoryPage extends StatelessWidget {
 
   Widget _buildActiveServices() {
     final List<Map<String, dynamic>> activeServices = [
-      {'service': 'Lavado de Sala en L', 'status': 'Cotización Pendiente', 'date': 'Solicitado hoy'},
-      {'service': 'Limpieza de Colchón King', 'status': 'Agendado', 'date': 'Viernes, 15 Nov - 10:00 AM'},
+      {
+        'service': 'Lavado de Sala en L',
+        'status': 'Cotización Pendiente',
+        'date': 'Solicitado hoy',
+      },
+      {
+        'service': 'Limpieza de Colchón King',
+        'status': 'Agendado',
+        'date': 'Viernes, 15 Nov - 10:00 AM',
+      },
     ];
 
     if (activeServices.isEmpty) {
@@ -57,7 +65,12 @@ class HistoryPage extends StatelessWidget {
 
   Widget _buildPastServices() {
     final List<Map<String, dynamic>> pastServices = [
-      {'service': 'Lavado de Alfombra', 'status': 'Finalizado', 'date': '20 Octubre 2023', 'cost': '\$450.00'},
+      {
+        'service': 'Lavado de Alfombra',
+        'status': 'Finalizado',
+        'date': '20 Octubre 2023',
+        'cost': '\$450.00',
+      },
     ];
 
     return ListView.builder(
@@ -92,7 +105,7 @@ class _ServiceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isFinished = data['status'] == 'Finalizado';
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       padding: const EdgeInsets.all(15),
@@ -107,7 +120,13 @@ class _ServiceCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(data['service'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(
+                data['service'],
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
               _buildStatusChip(data['status']),
             ],
           ),
@@ -116,7 +135,10 @@ class _ServiceCard extends StatelessWidget {
             children: [
               const Icon(Icons.calendar_today, size: 14, color: Colors.grey),
               const SizedBox(width: 5),
-              Text(data['date'], style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+              Text(
+                data['date'],
+                style: TextStyle(color: Colors.grey[600], fontSize: 13),
+              ),
             ],
           ),
           if (isFinished && data.containsKey('cost')) ...[
@@ -124,11 +146,20 @@ class _ServiceCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("Total Pagado", style: TextStyle(color: Colors.grey)),
-                Text(data['cost'], style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+                const Text(
+                  "Total Pagado",
+                  style: TextStyle(color: Colors.grey),
+                ),
+                Text(
+                  data['cost'],
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
+                ),
               ],
             ),
-          ]
+          ],
         ],
       ),
     );
@@ -137,10 +168,17 @@ class _ServiceCard extends StatelessWidget {
   Widget _buildStatusChip(String status) {
     Color color;
     switch (status) {
-      case 'Agendado': color = Colors.blue; break;
-      case 'Finalizado': color = Colors.green; break;
-      case 'Cotización Pendiente': color = Colors.orange; break;
-      default: color = Colors.grey;
+      case 'Agendado':
+        color = Colors.blue;
+        break;
+      case 'Finalizado':
+        color = Colors.green;
+        break;
+      case 'Cotización Pendiente':
+        color = Colors.orange;
+        break;
+      default:
+        color = Colors.grey;
     }
 
     return Container(
@@ -151,7 +189,11 @@ class _ServiceCard extends StatelessWidget {
       ),
       child: Text(
         status,
-        style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          color: color,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
