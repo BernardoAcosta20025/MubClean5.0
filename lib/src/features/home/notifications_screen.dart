@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:mubclean/src/features/quotation/screens/quote_summary_pay_screen.dart'; // La crearemos abajo
-
+import 'package:mubclean/src/features/quotation/screens/quote_summary_screen.dart';
+import 'package:mubclean/src/features/home/home_page.dart';
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
 
@@ -21,7 +21,6 @@ class NotificationsScreen extends StatelessWidget {
       body: userId == null 
           ? const Center(child: Text("Inicia sesión para ver notificaciones"))
           : StreamBuilder<List<Map<String, dynamic>>>(
-              // Escuchamos la tabla en tiempo real
               stream: supabase
                   .from('notifications')
                   .stream(primaryKey: ['id'])
@@ -74,12 +73,12 @@ class NotificationsScreen extends StatelessWidget {
                           ],
                         ),
                         onTap: () {
-                          // Al tocar, vamos a la pantalla de PAGO del servicio asociado
                           if (notif['booking_id'] != null) {
+                            // NAVEGAR AL RESUMEN (NO AL PAGO DIRECTO)
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => QuoteSummaryPayScreen(
+                                builder: (context) => QuoteSummaryScreen(
                                   bookingId: notif['booking_id'],
                                 ),
                               ),
