@@ -1,3 +1,4 @@
+import 'dart:async'; 
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
@@ -25,6 +26,7 @@ class LocationMapScreen extends StatefulWidget {
 class _LocationMapScreenState extends State<LocationMapScreen> {
   final _addressController = TextEditingController();
   final _receiverController = TextEditingController();
+  final TextEditingController _referenceController = TextEditingController();
 
   // Configuración del Calendario
   DateTime _focusedDay = DateTime.now();
@@ -33,8 +35,8 @@ class _LocationMapScreenState extends State<LocationMapScreen> {
 
   // --- VARIABLES PARA EL MAPA ---
   late GoogleMapController mapController;
-  final LatLng _initialPosition = const LatLng(20.967370, -89.623540);
-  final Set<Marker> _markers = {};
+  LatLng _currentMapPosition = const LatLng(20.967370, -89.623540); // Posición inicial de Mérida, Yucatán
+  bool _isMapMoving = false; 
 
   @override
   void initState() {
@@ -43,11 +45,19 @@ class _LocationMapScreenState extends State<LocationMapScreen> {
     _selectedDay = DateTime.now();
   }
 
-  // --- LÓGICA HÍBRIDA: BUSCAR DIRECCIÓN ---
+  @override
+  void dispose() {
+    _addressController.dispose();
+    _receiverController.dispose();
+    _referenceController.dispose();
+    super.dispose();
+  }
+
+  // --- LÓGICA: BUSCAR POR TEXTO (Usuario escribe -> Mapa se mueve) ---
   Future<void> _buscarDireccionEnMapa() async {
     String direccion = _addressController.text;
     if (direccion.isEmpty) return;
-    FocusScope.of(context).unfocus();
+    FocusScope.of(context).unfocus(); // Cerrar teclado
 
     try {
       List<Location> locations = await locationFromAddress(direccion);
@@ -55,30 +65,21 @@ class _LocationMapScreenState extends State<LocationMapScreen> {
       if (locations.isNotEmpty) {
         Location lugar = locations.first;
         LatLng nuevasCoordenadas = LatLng(lugar.latitude, lugar.longitude);
+        
+        // Movemos la cámara del mapa a la dirección escrita
         mapController.animateCamera(
           CameraUpdate.newLatLngZoom(nuevasCoordenadas, 16.0),
         );
+        
         setState(() {
-          _markers.clear();
-          _markers.add(
-            Marker(
-              markerId: MarkerId(direccion),
-              position: nuevasCoordenadas,
-              infoWindow: InfoWindow(
-                title: "Ubicación del servicio",
-                snippet: direccion,
-              ),
-            ),
-          );
+          _currentMapPosition = nuevasCoordenadas;
         });
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "No se encontró la dirección. Intenta agregar 'Merida' o ser más específico.",
-          ),
+          content: Text("No se encontró la dirección. Intenta ser más específico."),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -87,6 +88,22 @@ class _LocationMapScreenState extends State<LocationMapScreen> {
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
+  }
+
+  // Detectamos cuando se mueve para la animación del Pin
+  void _onCameraMove(CameraPosition position) {
+    setState(() {
+      _currentMapPosition = position.target;
+      _isMapMoving = true;
+    });
+  }
+
+  // Detectamos cuando se detiene (Solo para detener la animación visual)
+  void _onCameraIdle() {
+    setState(() {
+      _isMapMoving = false;
+    });
+    // NOTA: Ya NO llamamos a _getAddressFromLatLng para no sobrescribir lo que el usuario escribió.
   }
 
   @override
@@ -120,151 +137,75 @@ class _LocationMapScreenState extends State<LocationMapScreen> {
                             padding: EdgeInsets.all(15.0),
                             child: Text(
                               "Selecciona Fecha y Hora",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                              ),
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                             ),
                           ),
-
-                          // --- CALENDARIO AJUSTADO PARA EVITAR CORTES ---
                           TableCalendar(
                             locale: 'es_ES',
                             firstDay: DateTime.now(),
-                            lastDay: DateTime.now().add(
-                              const Duration(days: 90),
-                            ),
+                            lastDay: DateTime.now().add(const Duration(days: 90)),
                             focusedDay: _focusedDay,
                             currentDay: _selectedDay,
                             calendarFormat: CalendarFormat.month,
-                            availableCalendarFormats: const {
-                              CalendarFormat.month: 'Mes',
-                            },
-                            rowHeight: 42, // Altura optimizada
-                            // Estilo de la cabecera
+                            availableCalendarFormats: const {CalendarFormat.month: 'Mes'},
+                            rowHeight: 42,
                             headerStyle: HeaderStyle(
                               formatButtonVisible: false,
                               titleCentered: true,
-                              titleTextStyle: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                              leftChevronIcon: const Icon(
-                                Icons.chevron_left,
-                                color: mubBlue,
-                              ),
-                              rightChevronIcon: const Icon(
-                                Icons.chevron_right,
-                                color: mubBlue,
-                              ),
+                              titleTextStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              leftChevronIcon: const Icon(Icons.chevron_left, color: mubBlue),
+                              rightChevronIcon: const Icon(Icons.chevron_right, color: mubBlue),
                               titleTextFormatter: (date, locale) {
-                                final dateStr = DateFormat.yMMMM(
-                                  locale,
-                                ).format(date);
+                                final dateStr = DateFormat.yMMMM(locale).format(date);
                                 return "${dateStr[0].toUpperCase()}${dateStr.substring(1)}";
                               },
                             ),
-
-                            // AJUSTE CLAVE 1: Letra más pequeña para los días (Dom, Lun...)
                             daysOfWeekStyle: const DaysOfWeekStyle(
-                              weekdayStyle: TextStyle(
-                                fontSize: 12.0,
-                                color: Colors.black87,
-                              ),
-                              weekendStyle: TextStyle(
-                                fontSize: 12.0,
-                                color: Colors.redAccent,
-                              ),
+                              weekdayStyle: TextStyle(fontSize: 12.0, color: Colors.black87),
+                              weekendStyle: TextStyle(fontSize: 12.0, color: Colors.redAccent),
                             ),
-
-                            // AJUSTE CLAVE 2: Letra y márgenes optimizados para los números
                             calendarStyle: CalendarStyle(
-                              cellMargin: const EdgeInsets.all(
-                                2.0,
-                              ), // Menos margen para que quepan
-                              selectedDecoration: BoxDecoration(
-                                color: mubBlue,
-                                shape: BoxShape.circle,
-                              ),
-                              todayDecoration: BoxDecoration(
-                                color: mubBlue.withValues(alpha: 0.3),
-                                shape: BoxShape.circle,
-                              ),
-
+                              cellMargin: const EdgeInsets.all(2.0),
+                              selectedDecoration: BoxDecoration(color: mubBlue, shape: BoxShape.circle),
+                              todayDecoration: BoxDecoration(color: mubBlue.withOpacity(0.3), shape: BoxShape.circle),
                               defaultTextStyle: const TextStyle(fontSize: 13.0),
-                              weekendTextStyle: const TextStyle(
-                                fontSize: 13.0,
-                                color: Colors.redAccent,
-                              ),
-                              outsideTextStyle: const TextStyle(
-                                fontSize: 13.0,
-                                color: Colors.grey,
-                              ),
+                              weekendTextStyle: const TextStyle(fontSize: 13.0, color: Colors.redAccent),
+                              outsideTextStyle: const TextStyle(fontSize: 13.0, color: Colors.grey),
                             ),
-
                             onDaySelected: (selected, focused) {
                               setState(() {
                                 _selectedDay = selected;
                                 _focusedDay = focused;
                               });
                             },
-                            selectedDayPredicate: (day) =>
-                                isSameDay(_selectedDay, day),
+                            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
                           ),
-
-                          // --- FIN DE AJUSTES ---
                           const SizedBox(height: 20),
                           const Padding(
                             padding: EdgeInsets.symmetric(horizontal: 15.0),
-                            child: Text(
-                              "Horarios Disponibles",
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
+                            child: Text("Horarios Disponibles", style: TextStyle(fontWeight: FontWeight.w600)),
                           ),
                           const SizedBox(height: 10),
                           SizedBox(
                             height: 50,
                             child: ListView(
                               scrollDirection: Axis.horizontal,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                              ),
-                              children:
-                                  [
-                                    "09:00 AM",
-                                    "10:00 AM",
-                                    "11:00 AM",
-                                    "12:00 PM",
-                                    "03:00 PM",
-                                    "04:00 PM",
-                                    "05:00 PM",
-                                  ].map((time) {
-                                    bool isSelected = _selectedTime == time;
-                                    return Padding(
-                                      padding: const EdgeInsets.only(
-                                        right: 8.0,
-                                      ),
-                                      child: ChoiceChip(
-                                        label: Text(time),
-                                        selected: isSelected,
-                                        onSelected: (v) => setState(
-                                          () => _selectedTime = time,
-                                        ),
-                                        selectedColor: mubBlue,
-                                        labelStyle: TextStyle(
-                                          color: isSelected
-                                              ? Colors.white
-                                              : Colors.black,
-                                        ),
-                                        backgroundColor: Colors.grey[100],
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            20,
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              children: ["09:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "03:00 PM", "04:00 PM", "05:00 PM"].map((time) {
+                                bool isSelected = _selectedTime == time;
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: ChoiceChip(
+                                    label: Text(time),
+                                    selected: isSelected,
+                                    onSelected: (v) => setState(() => _selectedTime = time),
+                                    selectedColor: mubBlue,
+                                    labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
+                                    backgroundColor: Colors.grey[100],
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                  ),
+                                );
+                              }).toList(),
                             ),
                           ),
                         ],
@@ -273,25 +214,54 @@ class _LocationMapScreenState extends State<LocationMapScreen> {
 
                     const SizedBox(height: 20),
 
-                    // 2. SECCIÓN DE MAPA
+                    // 2. SECCIÓN DE MAPA (Sin autollenado)
                     Container(
                       height: 250,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        border: Border.symmetric(
-                          horizontal: BorderSide(color: Colors.grey.shade300),
-                        ),
+                        border: Border.symmetric(horizontal: BorderSide(color: Colors.grey.shade300)),
                       ),
-                      child: GoogleMap(
-                        onMapCreated: _onMapCreated,
-                        initialCameraPosition: CameraPosition(
-                          target: _initialPosition,
-                          zoom: 14.0,
-                        ),
-                        markers: _markers,
-                        myLocationEnabled: true,
-                        myLocationButtonEnabled: true,
-                        zoomControlsEnabled: true,
+                      child: Stack(
+                        children: [
+                          GoogleMap(
+                            onMapCreated: _onMapCreated,
+                            initialCameraPosition: CameraPosition(
+                              target: _currentMapPosition,
+                              zoom: 15.0,
+                            ),
+                            markers: {}, 
+                            myLocationEnabled: true,
+                            myLocationButtonEnabled: true,
+                            zoomControlsEnabled: true,
+                            onCameraMove: _onCameraMove,
+                            onCameraIdle: _onCameraIdle,
+                          ),
+                          // Pin Central Visual
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 24.0),
+                              child: Icon(
+                                Icons.location_on, 
+                                size: 40, 
+                                color: _isMapMoving ? Colors.redAccent.withOpacity(0.7) : Colors.red,
+                              ),
+                            ),
+                          ),
+                          // Sombra
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 24.0),
+                              child: Container(
+                                width: 5,
+                                height: 5,
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.3),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
 
@@ -301,53 +271,44 @@ class _LocationMapScreenState extends State<LocationMapScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            "Detalles de la Dirección",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
+                          const Text("Detalles de la Dirección", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                           const SizedBox(height: 15),
-
+                          
                           SizedBox(
                             width: double.infinity,
                             child: _buildAddressSearchField(context),
                           ),
                           const SizedBox(height: 15),
+                          
+                          // REFERENCIAS (Límite 200)
                           SizedBox(
                             width: double.infinity,
                             child: _buildTextField(
-                              null,
-                              "Referencias (Opcional)",
-                              Icons.visibility_outlined,
-                              "Fachada color, portón...",
-                              maxLines: 2,
+                              _referenceController, 
+                              "Referencias (Opcional)", 
+                              Icons.visibility_outlined, 
+                              "Fachada color, portón...", 
+                              maxLines: 3,
+                              maxLength: 200,
                             ),
                           ),
-
+                          
                           const SizedBox(height: 30),
-
-                          const Text(
-                            "Recepción del Servicio",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
+                          
+                          const Text("Recepción del Servicio", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                           const SizedBox(height: 5),
-                          const Text(
-                            "Por seguridad, ¿quién recibe al equipo?",
-                            style: TextStyle(color: Colors.grey, fontSize: 13),
-                          ),
+                          const Text("Por seguridad, ¿quién recibe al equipo?", style: TextStyle(color: Colors.grey, fontSize: 13)),
                           const SizedBox(height: 15),
+                          
+                          // NOMBRE (Límite 40)
                           SizedBox(
                             width: double.infinity,
                             child: _buildTextField(
-                              _receiverController,
-                              "Nombre de la persona",
-                              Icons.person_outline,
+                              _receiverController, 
+                              "Nombre de la persona", 
+                              Icons.person_outline, 
                               "Ej. Juan Pérez",
+                              maxLength: 40,
                             ),
                           ),
                         ],
@@ -358,7 +319,7 @@ class _LocationMapScreenState extends State<LocationMapScreen> {
                 ),
               ),
             ),
-
+            
             // 4. BARRA INFERIOR
             Container(
               padding: const EdgeInsets.all(20),
@@ -370,14 +331,9 @@ class _LocationMapScreenState extends State<LocationMapScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    if (_addressController.text.isEmpty ||
-                        _receiverController.text.isEmpty) {
+                    if (_addressController.text.isEmpty || _receiverController.text.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            "Por favor ingresa la dirección y quién recibe.",
-                          ),
-                        ),
+                          const SnackBar(content: Text("Por favor ingresa la dirección y quién recibe."))
                       );
                       return;
                     }
@@ -388,9 +344,10 @@ class _LocationMapScreenState extends State<LocationMapScreen> {
                         builder: (context) => PaymentCheckoutScreen(
                           selectedService: widget.selectedService,
                           furnitureItems: widget.furnitureItems,
-                          totalToPay: widget.itemsTotal + 50.0,
+                          totalToPay: widget.itemsTotal,
                           address: _addressController.text,
                           receiverName: _receiverController.text,
+                          reference: _referenceController.text, 
                           serviceDate: _selectedDay ?? DateTime.now(),
                           serviceTime: _selectedTime,
                         ),
@@ -400,18 +357,9 @@ class _LocationMapScreenState extends State<LocationMapScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: mubBlue,
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text(
-                    "Continuar",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: const Text("Continuar", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                 ),
               ),
             ),
@@ -425,17 +373,15 @@ class _LocationMapScreenState extends State<LocationMapScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          "Dirección Exacta",
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-        ),
+        const Text("Dirección Exacta", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
         const SizedBox(height: 8),
         TextField(
           controller: _addressController,
           maxLines: 1,
-          onSubmitted: (value) => _buscarDireccionEnMapa(),
+          // Al presionar Enter o la Lupa, se mueve el mapa, pero NO al revés.
+          onSubmitted: (value) => _buscarDireccionEnMapa(), 
           decoration: InputDecoration(
-            hintText: "Calle, Número, Colonia, Merida...",
+            hintText: "Escribe tu dirección y busca...",
             hintStyle: TextStyle(color: Colors.grey[400]),
             prefixIcon: const Icon(Icons.home_outlined, color: Colors.grey),
             suffixIcon: IconButton(
@@ -456,10 +402,7 @@ class _LocationMapScreenState extends State<LocationMapScreen> {
               borderRadius: BorderRadius.all(Radius.circular(12)),
               borderSide: BorderSide(color: Color(0xFF0A7AFF), width: 1.5),
             ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
         ),
       ],
@@ -467,23 +410,22 @@ class _LocationMapScreenState extends State<LocationMapScreen> {
   }
 
   Widget _buildTextField(
-    TextEditingController? controller,
-    String label,
-    IconData icon,
+    TextEditingController? controller, 
+    String label, 
+    IconData icon, 
     String hint, {
     int maxLines = 1,
+    int? maxLength, 
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-        ),
+        Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
           maxLines: maxLines,
+          maxLength: maxLength,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: Colors.grey[400]),
@@ -502,10 +444,7 @@ class _LocationMapScreenState extends State<LocationMapScreen> {
               borderRadius: BorderRadius.all(Radius.circular(12)),
               borderSide: BorderSide(color: Color(0xFF0A7AFF), width: 1.5),
             ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
         ),
       ],

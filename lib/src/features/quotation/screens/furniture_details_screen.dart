@@ -260,7 +260,7 @@ class _FurnitureDetailsScreenState extends State<FurnitureDetailsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          "Configurar Nuevo Mueble",
+                          "Configurar  b Nuevo Mueble",
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
